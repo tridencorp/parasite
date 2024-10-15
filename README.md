@@ -1,2 +1,2 @@
 # parasite
-Ethereum p2p node (based on geth)
+Ethereum p2p node (based on geth).
