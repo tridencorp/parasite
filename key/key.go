@@ -10,3 +10,8 @@ import (
 func FromHex(hex string) (*ecdsa.PrivateKey, error) {
 	return crypto.HexToECDSA(hex)
 }
+
+// Generate new ECDSA private key.
+func Private() (*ecdsa.PrivateKey, error) {
+	return crypto.GenerateKey()
+}
