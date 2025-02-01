@@ -1,3 +1,3 @@
-# parasite
-Ethereum p2p and sync node (based on geth).
+# Parasite
 
+Small P2P/RPC server for ETH and BTC.
