@@ -1,5 +1,9 @@
 package p2p
 
+import (
+	"github.com/ethereum/go-ethereum/rlp"
+)
+
 // All ETH68 message codes.
 // We will be only supporting the newest ETH protocol.
 
@@ -28,3 +32,19 @@ const (
 	GetReceiptsMsg                = 0x1B
 	ReceiptsMsg                   = 0x1C
 )
+
+type Capability struct {
+	Name    string
+	Version uint
+}
+
+type Handshake struct {
+	Version    uint64
+	Name       string
+	Caps       []Capability
+	ListenPort uint64
+	ID         []byte
+
+	// Currently unused, but required for compatibility with ETH.
+	Rest []rlp.RawValue `rlp:"tail"`
+}
