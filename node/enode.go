@@ -1,7 +1,6 @@
 package node
 
 import (
-	"crypto"
 	"crypto/ecdsa"
 	"fmt"
 	"net"
@@ -10,13 +9,13 @@ import (
 )
 
 // Return enode string. Address must be in "ip:port" format.
-func Enode(pub crypto.PublicKey, address string) (string, error) {
+func Enode(pub *ecdsa.PublicKey, address string) (string, error) {
 	addr, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
 		return "", err
 	}
 
-	node := enode.NewV4(pub.(*ecdsa.PublicKey), addr.IP, addr.Port, 0)
+	node := enode.NewV4(pub, addr.IP, addr.Port, 0)
 	return node.String(), nil
 }
 
