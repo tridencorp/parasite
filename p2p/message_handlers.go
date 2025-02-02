@@ -30,7 +30,10 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 	}
 
 	res := Msg{Code: HandshakeMsg, Size: uint32(buf.Len()), Data: buf.Bytes()}
-	peer.Send(res)
+	_, err = peer.Send(res)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
