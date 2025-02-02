@@ -6,3 +6,11 @@ type Msg struct {
 	Size uint32
 	Data []byte
 }
+
+func NewMsg(code int, data []byte) Msg {
+	return Msg{
+		Code: uint64(code),
+		Size: uint32(len(data)),
+		Data: data,
+	}
+}

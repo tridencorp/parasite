@@ -19,6 +19,7 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 	}
 
 	// For now let's try to send the same handshake only changing the ID.
+	// @TODO: disable snap compression.
 	buf := bytes.Buffer{}
 
 	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
@@ -29,11 +30,15 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 		return err
 	}
 
-	res := Msg{Code: HandshakeMsg, Size: uint32(buf.Len()), Data: buf.Bytes()}
+	res := NewMsg(HandshakeMsg, buf.Bytes())
 	_, err = peer.Send(res)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func HandleStatus(req Msg, peer *Peer) error {
 	return nil
 }
