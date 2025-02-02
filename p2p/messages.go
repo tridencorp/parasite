@@ -8,23 +8,23 @@ const ETH = 68
 const (
 	// Base protocol msg codes: 0x00...0x10 (0-16)
 	// Only 4 are used for now.
-	HANDSHAKE = 0x00
-	DISC      = 0x01
-	PING      = 0x02
-	PONG      = 0x03
+	HandshakeMsg = 0x00
+	DiscMsg      = 0x01
+	PingMsg      = 0x02
+	PongMsg      = 0x03
 
 	// Extended protocol msg codes: 0x10...0x1C (16-28)
-	STATUS                        = 0x10
-	NEW_BLOCK_HASHES              = 0x11
-	TRANSACTIONS                  = 0x12
-	GET_BLOCK_HEADERS             = 0x13
-	BLOCK_HEADERS                 = 0x14
-	GET_BLOCK_BODIES              = 0x15
-	BLOCK_BODIES                  = 0x16
-	NEW_BLOCK                     = 0x17
-	NEW_POOLED_TRANSACTION_HASHES = 0x18
-	GET_POOLED_TRANSACTIONS       = 0x19
-	POOLED_TRANSACTIONS           = 0x1A
-	GET_RECEIPTS                  = 0x1B
-	RECEIPTS                      = 0x1C
+	StatusMsg                     = 0x10
+	NewBlockHashesMsg             = 0x11
+	TranasctionsMsg               = 0x12
+	GetBlockHeadersMsg            = 0x13
+	BlockHeadersMsg               = 0x14
+	GetBlockBodiesMsg             = 0x15
+	BlockBodiesMsg                = 0x16
+	NewBlockMsg                   = 0x17
+	NewPooledTranasctionHashesMsg = 0x18
+	GetPooledTransactionsMsg      = 0x19
+	PooledTransactionsMsg         = 0x1A
+	GetReceiptsMsg                = 0x1B
+	ReceiptsMsg                   = 0x1C
 )
