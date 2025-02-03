@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -47,4 +48,21 @@ type Handshake struct {
 
 	// Currently unused, but required for compatibility with ETH.
 	Rest []rlp.RawValue `rlp:"tail"`
+}
+
+type HashOrNumber struct {
+	Hash   common.Hash // Starting position Hash
+	Number uint64      // Starting position Number
+}
+
+type GetBlockHeadersRequest struct {
+	Origin  HashOrNumber
+	Amount  uint64
+	Skip    uint64
+	Reverse bool
+}
+
+type GetBlockHeadersPacket struct {
+	RequestId uint64
+	*GetBlockHeadersRequest
 }
