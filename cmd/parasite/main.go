@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"parasite/key"
+	"parasite/log"
 	"parasite/node"
 	"parasite/p2p"
 )
@@ -16,6 +17,12 @@ func main() {
 		fmt.Print(err)
 	}
 
+	err = log.Setup("parasite.log")
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	log.Info("Conecting to peer ...")
 	peer, err := node.Connect(dstID, srcPrv)
 	if err != nil {
 		fmt.Print(err)
