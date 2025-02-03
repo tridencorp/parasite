@@ -46,6 +46,9 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 				fmt.Print(err)
 			}
 
+		case p2p.PingMsg:
+			peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
+
 		default:
 			fmt.Printf("Unsupported msg code: %d", msg.Code)
 			fmt.Printf(string(msg.Data))
