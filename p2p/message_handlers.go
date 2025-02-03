@@ -20,6 +20,7 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 
 	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
 	handshake.ID = crypto.FromECDSAPub(srcPub)[1:]
+	handshake.Caps = []Capability{{"eth", 68}} 
 
 	// This will disable the snappy compression.
 	handshake.Version = 0

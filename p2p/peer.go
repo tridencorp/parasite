@@ -15,7 +15,7 @@ func NewPeer(conn *rlpx.Conn) *Peer {
 }
 
 // Reads message from a connected peer.
-// Blocks until data is available.
+// BlocksBlocks until data is available.
 func (p *Peer) Read() (Msg, error) {
 	code, data, size, err := p.conn.Read()
 	if err != nil {
@@ -23,4 +23,9 @@ func (p *Peer) Read() (Msg, error) {
 	}
 
 	return Msg{Code: code, Size: uint32(size), Data: data}, err
+}
+
+// Send message to peer.
+func (p *Peer) Send(msg Msg) (uint32, error) {
+	return p.conn.Write(msg.Code, msg.Data)
 }
