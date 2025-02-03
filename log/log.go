@@ -12,12 +12,13 @@ var file *os.File
 
 // @TODO: Make it atomic so we can only call it once.
 func Setup(path string) error {
-	tmp, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	var err error
+
+	file, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 
-	file = tmp
 	return nil
 }
 
