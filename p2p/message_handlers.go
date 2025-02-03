@@ -18,13 +18,13 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 		return err
 	}
 
-	// For now let's try to send the same handshake only changing the ID.
-	// @TODO: disable snap compression.
-	buf := bytes.Buffer{}
-
 	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
 	handshake.ID = crypto.FromECDSAPub(srcPub)[1:]
 
+	// This will disable the snappy compression.
+	handshake.Version = 0
+
+	buf := bytes.Buffer{}
 	err = rlp.Encode(&buf, handshake)
 	if err != nil {
 		return err
@@ -39,6 +39,13 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 	return nil
 }
 
+// Handle status msg.
 func HandleStatus(req Msg, peer *Peer) error {
+	// @HACK: We just resend the same status.
+	_, err := peer.Send(req)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
