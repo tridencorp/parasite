@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -19,19 +18,18 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 	}
 
 	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
-	handshake.ID = crypto.FromECDSAPub(srcPub)[1:]
+	handshake.ID   = crypto.FromECDSAPub(srcPub)[1:]
 	handshake.Caps = []Capability{{"eth", 68}} 
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
 
-	buf := bytes.Buffer{}
-	err = rlp.Encode(&buf, handshake)
+	buf, err := rlp.EncodeToBytes(handshake)
 	if err != nil {
 		return err
 	}
 
-	res := NewMsg(HandshakeMsg, buf.Bytes())
+	res := NewMsg(HandshakeMsg, buf)
 	_, err = peer.Send(res)
 	if err != nil {
 		return err
