@@ -29,10 +29,5 @@ func NewConfig(file string) (*Config, error) {
 
 // Unmarshal given configuration key and put it's content to dst.
 func (c *Config) Parse(key string, dst any) error {
-	err := json.Unmarshal(c.json[key], dst)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(c.json[key], dst)
 }
