@@ -59,23 +59,44 @@ func Configure(conf *Config) error {
 	// if err != nil {
 	// 	return err
 	// }
-
 	return nil
 }
 
-// Write to file and stdout.
-func Info(format string, args ...any) {
-	log := fmt.Sprintf(format, args...)
-
-	prefix := "INFO " + prefix()
-
+func Error(format string, args ...any) {
 	for _, writer := range config.InfoWriters {
-		writer.WriteString(magenta + prefix + log + reset)
+		writer.WriteString(red + formatLog(format, "ERROR ", args...) + reset)
 	}
 }
 
-func prefix() string {
-	_, file, line, _ := runtime.Caller(2)
+func Info(format string, args ...any) {
+	for _, writer := range config.InfoWriters {
+		writer.WriteString(magenta + formatLog(format, "INFO ", args...) + reset)
+	}
+}
+
+func Debug(format string, args ...any) {
+	for _, writer := range config.InfoWriters {
+		writer.WriteString(green + formatLog(format, "DEBUG ", args...) + reset)
+	}
+}
+
+func Trace(format string, args ...any) {
+	for _, writer := range config.InfoWriters {
+		writer.WriteString(blue + formatLog(format, "TRACE ", args...) + reset)
+	}
+}
+
+// Format log and add default prefix to it.
+func formatLog(format, prefix string, args ...any) string {
+	log := fmt.Sprintf(format, args...)
+	return (prefix + defaultPrefix() + log)
+}
+
+// Return default prefix with caller file name and line number. 
+// 
+// @TODO: should we also add caller function name?
+func defaultPrefix() string {
+	_, file, line, _ := runtime.Caller(3)
 
 	file = filepath.Base(file)
 	prefix := fmt.Sprintf("(%s:%d) ", file, line)
