@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type Bloom [256]byte
@@ -33,4 +35,14 @@ type BlockHeader struct {
 	ExcessBlobGas     *uint64       `rlp:"optional"`
 	ParentBeaconRoot  *common.Hash  `rlp:"optional"`
 	RequestsHash      *common.Hash  `rlp:"optional"`
+}
+
+// Compute block header hash.
+func (bh *BlockHeader) Hash() (common.Hash, error) {
+	bytes, err := rlp.EncodeToBytes(bh)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	return crypto.Keccak256Hash(bytes), nil
 }
