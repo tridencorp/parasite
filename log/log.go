@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"runtime"
 )
 
 // This is only basic skeleton. We are working on it, it's ongoing proccess :D
@@ -18,6 +20,19 @@ type Config struct {
 	DebugWriters []io.StringWriter
 	TraceWriters []io.StringWriter
 }
+
+// Standard colors.
+const (
+	red     = "\033[31m"
+	green   = "\033[32m"
+	yellow  = "\033[33m"
+	black   = "\033[30m"
+	blue    = "\033[34m"
+	magenta = "\033[35m"
+	cyan    = "\033[36m"
+	white   = "\033[37m"
+	reset   = "\033[0m"
+)
 
 // Quick implementation of io.StringWriter for stdout.
 type StdoutWriter struct {}
@@ -52,7 +67,18 @@ func Configure(conf *Config) error {
 func Info(format string, args ...any) {
 	log := fmt.Sprintf(format, args...)
 
+	prefix := "INFO " + prefix()
+
 	for _, writer := range config.InfoWriters {
-		writer.WriteString(log)
+		writer.WriteString(magenta + prefix + log + reset)
 	}
+}
+
+func prefix() string {
+	_, file, line, _ := runtime.Caller(2)
+
+	file = filepath.Base(file)
+	prefix := fmt.Sprintf("(%s:%d) ", file, line)
+
+	return prefix
 }
