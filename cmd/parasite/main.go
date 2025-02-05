@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"parasite/config"
 	"parasite/key"
@@ -26,7 +25,7 @@ func main() {
 		fmt.Print(err)
 	}
 
-	err = log.Setup("parasite.log")
+	err = log.Configure(&log.Config{})
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -45,11 +44,6 @@ func main() {
 }
 
 func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
-	bytes, err := hex.DecodeString("e55f48b9e8733758dc96abc807f0e398780c95e221053d1664a364b6ff770b40")
-	fmt.Print(err)
-	fmt.Print(bytes)
-	fmt.Print(len(bytes))
-
 	for {
 		msg, err := peer.Read()
 		if err != nil {

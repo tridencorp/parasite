@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -9,23 +10,49 @@ import (
 // This logger will be in a separate repository and will be used across all our services.
 
 var file *os.File
+var config Config
+
+type Config struct {
+	ErrorWriters []io.StringWriter
+	InfoWriters  []io.StringWriter
+	DebugWriters []io.StringWriter
+	TraceWriters []io.StringWriter
+}
+
+// Quick implementation of io.StringWriter for stdout.
+type StdoutWriter struct {}
+
+func (stdout StdoutWriter) WriteString(log string) (int, error) {
+	return fmt.Println(log)
+}
 
 // @TODO: Make it atomic so we can only call it once.
-func Setup(path string) error {
-	var err error
+func Configure(conf *Config) error {
+	// Default writers for stdout and file(disabled for now).
+	defaultWriters := []io.StringWriter{StdoutWriter{}}
 
-	file, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
+	// We are setting package config.
+	config = Config{
+		// Setting writers for each log level.
+		ErrorWriters: append(defaultWriters, conf.ErrorWriters...),
+		InfoWriters:  append(defaultWriters, conf.ErrorWriters...),
+		DebugWriters: append(defaultWriters, conf.ErrorWriters...),
+		TraceWriters: append(defaultWriters, conf.ErrorWriters...),
 	}
+
+	// file, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
 // Write to file and stdout.
 func Info(format string, args ...any) {
-	data := fmt.Sprintf(format + "\n", args...)
-	file.Write([]byte(data))
+	log := fmt.Sprintf(format, args...)
 
-	fmt.Print(data)
+	for _, writer := range config.InfoWriters {
+		writer.WriteString(log)
+	}
 }
