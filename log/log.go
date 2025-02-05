@@ -63,31 +63,39 @@ func Configure(conf *Config) error {
 }
 
 func Error(format string, args ...any) {
-	for _, writer := range config.InfoWriters {
-		writer.WriteString(red + formatLog(format, "ERROR ", args...) + reset)
+	log := formatLog("ERROR ", format, args...)
+
+	for _, writer := range config.ErrorWriters {
+		writer.WriteString(red + log + reset)
 	}
 }
 
 func Info(format string, args ...any) {
+	log := formatLog("INFO ", format, args...)
+
 	for _, writer := range config.InfoWriters {
-		writer.WriteString(magenta + formatLog(format, "INFO ", args...) + reset)
+		writer.WriteString(magenta + log + reset)
 	}
 }
 
 func Debug(format string, args ...any) {
-	for _, writer := range config.InfoWriters {
-		writer.WriteString(green + formatLog(format, "DEBUG ", args...) + reset)
+	log := formatLog("DEBUG ", format, args...)
+
+	for _, writer := range config.DebugWriters {
+		writer.WriteString(green + log + reset)
 	}
 }
 
 func Trace(format string, args ...any) {
-	for _, writer := range config.InfoWriters {
-		writer.WriteString(blue + formatLog(format, "TRACE ", args...) + reset)
+	log := formatLog("TRACE ", format, args...)
+
+	for _, writer := range config.TraceWriters {
+		writer.WriteString(blue + log + reset)
 	}
 }
 
 // Format log and add default prefix to it.
-func formatLog(format, prefix string, args ...any) string {
+func formatLog(prefix, format string, args ...any) string {
 	log := fmt.Sprintf(format, args...)
 	return (prefix + defaultPrefix() + log)
 }
