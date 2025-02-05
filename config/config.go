@@ -5,29 +5,27 @@ import (
 	"os"
 )
 
-// Simple config that loads and parse json files.
-type Config struct {
-	json map[string]json.RawMessage
-}
-
-// Create new config based on json file.
-func NewConfig(file string) (*Config, error) {
-	conf := &Config{}
-
+// Load json config. We are unmarshalling content of json key to given destination.
+// We are reading the whole file each time Load() is called. It simplifies the entire design
+// and in most cases, it's only called once at the beginning of the program,
+// so performance is not a concern here.
+func Load(file, key string, dst any) error {
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = json.Unmarshal(data, &conf.json)
+	conf := map[string]json.RawMessage{}
+	err = json.Unmarshal(data, &conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return conf, nil
+	err = json.Unmarshal(conf[key], dst)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// Unmarshal given configuration key and put it's content to dst.
-func (c *Config) Parse(key string, dst any) error {
-	return json.Unmarshal(c.json[key], dst)
-}
