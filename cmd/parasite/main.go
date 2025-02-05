@@ -8,8 +8,6 @@ import (
 	"parasite/log"
 	"parasite/node"
 	"parasite/p2p"
-
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func main() {
@@ -43,20 +41,7 @@ func main() {
 	StartPeer(peer, srcPrv)
 }
 
-func GetBlockHeadersByNumber(reqId, start, amount, skip uint64, reverse bool) []any {	
-	return []any{reqId, []any{start, amount, skip, reverse}}
-}
-
 func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
-	// Request bunch of block headers
-	reqId    := uint64(666)
-	start    := uint64(14678570)
-	amount   := uint64(1)
-	skip     := uint64(0)
-	reverse  := false
-
-	data, _   := rlp.EncodeToBytes(GetBlockHeadersByNumber(reqId, start, amount, skip, reverse))
-	headerMsg := p2p.NewMsg(p2p.GetBlockHeadersMsg, data)
 
 	for {
 		msg, err := peer.Read()
@@ -82,12 +67,12 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
 
 			fmt.Println("Sending headers ...")
-			size, err := peer.Send(headerMsg)
+			reqId, err := peer.GetBlockHeaders(14678570, 1, 0)
 			if err != nil {
 				fmt.Print(err)
-				return
 			}
-			fmt.Printf("they are send: %d\n", size)
+
+			fmt.Print(reqId)
 
 		case p2p.GetBlockHeadersMsg:
 			fmt.Println(msg.Code)
@@ -102,6 +87,9 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			}
 
 			log.Info("Headers:\n%V", headers)
+
+		case p2p.BlockBodiesMsg:
+			log.Info("Get Blocks")
 
 		default:
 			fmt.Printf("Unsupported msg code: %d\n", msg.Code)

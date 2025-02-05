@@ -1,7 +1,10 @@
 package p2p
 
 import (
+	"math/rand/v2"
+
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // Main struct handling P2P communication.
@@ -28,4 +31,26 @@ func (p *Peer) Read() (Msg, error) {
 // Send message to peer.
 func (p *Peer) Send(msg Msg) (uint32, error) {
 	return p.conn.Write(msg.Code, msg.Data)
+}
+
+// Request bunch of block headers from peer.
+func (p *Peer) GetBlockHeaders(start, amount, skip uint64) (uint64, error){
+	reqId := rand.Uint64()
+
+	req := GetBlockHeaders{
+		Start:   start,
+		Amount:  amount,
+		Skip:    skip,
+		Reverse: false,
+	}
+
+	data, _   := rlp.EncodeToBytes([]any{reqId, req})
+	headerMsg := NewMsg(GetBlockHeadersMsg, data)
+
+	_, err := p.Send(headerMsg)
+	if err != nil {
+		return 0, err
+	}
+
+	return reqId, nil
 }
