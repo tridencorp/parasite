@@ -3,6 +3,7 @@ package p2p
 import (
 	"math/rand/v2"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -53,4 +54,9 @@ func (p *Peer) GetBlockHeaders(start, amount, skip uint64) (uint64, error){
 	}
 
 	return reqId, nil
+}
+
+// Request blocks from peer.
+func (p *Peer) GetBlocks(headerHashes []common.Hash) {
+	
 }

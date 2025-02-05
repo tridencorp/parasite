@@ -3,6 +3,7 @@ package p2p
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"parasite/block"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -54,7 +55,7 @@ func HandleStatus(req Msg, peer *Peer) error {
 }
 
 // Decode block headers that we got from peer.
-func HandleBlockHeaders(msg Msg) ([]*BlockHeader, error) {
+func HandleBlockHeaders(msg Msg) ([]*block.BlockHeader, error) {
 	headers := new(BlockHeaders)
 
 	err := rlp.DecodeBytes(msg.Data, headers)

@@ -87,6 +87,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			}
 
 			log.Info("Headers:\n%V", headers)
+			log.Info("Header Hash:\n%v", headers)
 
 		case p2p.BlockBodiesMsg:
 			log.Info("Get Blocks")

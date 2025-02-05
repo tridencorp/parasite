@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	"math/big"
+	"parasite/block"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -54,41 +54,18 @@ type Handshake struct {
 	Rest []rlp.RawValue `rlp:"tail"`
 }
 
-// type GetBlocksPacket struct {
-// 	RequestId uint64
-// 	Headers []common.Hash
-// }
-
-type Bloom [256]byte
-type BlockNonce [8]byte
-
-type BlockHeader struct {
-	ParentHash  common.Hash
-	UncleHash   common.Hash
-	Coinbase    common.Address
-	Root        common.Hash
-	TxHash      common.Hash
-	ReceiptHash common.Hash
-	Bloom       Bloom
-	Difficulty  *big.Int
-	Number      *big.Int
-	GasLimit    uint64
-	GasUsed     uint64
-	Time        uint64
-	Extra       []byte
-	MixDigest   common.Hash
-	Nonce       BlockNonce
-
-	// optional
-	BaseFee           *big.Int      `rlp:"optional"`
-	WithdrawalsHash   *common.Hash  `rlp:"optional"`
-	BlobGasUsed       *uint64       `rlp:"optional"`
-	ExcessBlobGas     *uint64       `rlp:"optional"`
-	ParentBeaconRoot  *common.Hash  `rlp:"optional"`
-	RequestsHash      *common.Hash  `rlp:"optional"`
-}
-
 type BlockHeaders struct {
 	RequestId uint64
-	Headers []*BlockHeader
+	Headers []*block.BlockHeader
+}
+
+type GetBlockHeaders struct {
+	Start   uint64
+	Amount  uint64
+	Skip    uint64
+	Reverse bool
+}
+
+type GetBlockBodies struct {
+	HeaderHashes []common.Hash
 }
