@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -18,18 +19,21 @@ func HandleHandshake(req Msg, peer *Peer, srcPub *ecdsa.PublicKey) error {
 	}
 
 	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
-	handshake.ID   = crypto.FromECDSAPub(srcPub)[1:]
-	handshake.Caps = []Capability{{"eth", 68}} 
+	handshake.ID = crypto.FromECDSAPub(srcPub)[1:]
+
+	// We won't handle snap protocol for now, leave only newest eth.
+	handshake.Caps = []Capability{{"eth", ETH}}
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
 
-	buf, err := rlp.EncodeToBytes(handshake)
+	buf := bytes.Buffer{}
+	err = rlp.Encode(&buf, handshake)
 	if err != nil {
 		return err
 	}
 
-	res := NewMsg(HandshakeMsg, buf)
+	res := NewMsg(HandshakeMsg, buf.Bytes())
 	_, err = peer.Send(res)
 	if err != nil {
 		return err
@@ -47,4 +51,16 @@ func HandleStatus(req Msg, peer *Peer) error {
 	}
 
 	return nil
+}
+
+// Decode block headers that we got from peer.
+func HandleBlockHeaders(msg Msg) ([]*BlockHeader, error) {
+	headers := new(BlockHeaders)
+
+	err := rlp.DecodeBytes(msg.Data, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return headers.Headers, nil
 }

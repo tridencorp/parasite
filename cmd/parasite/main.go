@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto/ecdsa"
-	"flag"
 	"fmt"
+	"parasite/config"
 	"parasite/key"
 	"parasite/log"
 	"parasite/node"
@@ -12,9 +12,14 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-const dstID = "enode://e806157dfc5e11365210e09ad4af4fb129024de4a8c97c7a6c834daf9567200f9e8d03a769c1d53f13286a643e295b6f38073e90a1833c1e06ef23cc402cfecb@127.0.0.1:30303?discport=00"
-
 func main() {
+	// Load nodes
+	var nodes []string
+	err := config.Load("./eth_nodes.json", "nodes", &nodes)
+	if err != nil {
+		fmt.Print(err)
+	}
+
 	srcPrv, err := key.Private()
 	if err != nil {
 		fmt.Print(err)
@@ -26,28 +31,23 @@ func main() {
 	}
 
 	log.Info("Connecting to peer ...")
-	peer, err := node.Connect(dstID, srcPrv)
+	peer, err := node.Connect(nodes[0], srcPrv)
 	if err != nil {
 		fmt.Print(err)
 	}
 
 	// Sync playground 
-	sync := flag.Bool("sync", false, "")
-	flag.Parse()
+	// snc := flag.Bool("sync", false, "")
+	// flag.Parse()
 
-	if *sync {
-		StartSync(peer, srcPrv)
-	}
-
-	// Normal flow
-	StartPeerReader(peer, srcPrv)
+	StartPeer(peer, srcPrv)
 }
 
-func GetBlockHeadersByNumber(reqId, start, amount, skip uint64, reverse bool) []any {
+func GetBlockHeadersByNumber(reqId, start, amount, skip uint64, reverse bool) []any {	
 	return []any{reqId, []any{start, amount, skip, reverse}}
 }
 
-func StartSync(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
+func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 	// Request bunch of block headers
 	reqId    := uint64(666)
 	start    := uint64(14678570)
@@ -55,8 +55,8 @@ func StartSync(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 	skip     := uint64(0)
 	reverse  := false
 
-	data, _ := rlp.EncodeToBytes(GetBlockHeadersByNumber(reqId, start, amount, skip, reverse))
-	headerMsg := p2p.NewMsg((p2p.BaseProtocolLen+3), data)
+	data, _   := rlp.EncodeToBytes(GetBlockHeadersByNumber(reqId, start, amount, skip, reverse))
+	headerMsg := p2p.NewMsg(p2p.GetBlockHeadersMsg, data)
 
 	for {
 		msg, err := peer.Read()
@@ -94,43 +94,17 @@ func StartSync(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			fmt.Println(msg.Data)
 
 		case p2p.BlockHeadersMsg:
-			fmt.Println(msg.Code)
-			fmt.Println(msg.Data)
+			log.Info("Get headers")
+
+			headers, err := p2p.HandleBlockHeaders(msg)
+			if err != nil {
+				fmt.Print(err)
+			}
+
+			log.Info("Headers:\n%V", headers)
 
 		default:
 			fmt.Printf("Unsupported msg code: %d\n", msg.Code)
-			fmt.Printf(string(msg.Data))
-		}
-	}
-
-}
-
-// Main peer reader responsible for handling all p2p messages.
-func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
-	for {
-		msg, err := peer.Read()
-		if err != nil {
-			fmt.Print(err)
-			break
-		}
-
-		switch msg.Code {
-		case p2p.HandshakeMsg:
-			err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
-			if err != nil {
-				fmt.Print(err)
-			}
-
-		case p2p.StatusMsg:
-			err := p2p.HandleStatus(msg, peer)
-			if err != nil {
-				fmt.Print(err)
-			}
-
-		case p2p.PingMsg:
-
-		default:
-			fmt.Printf("Unsupported msg code: %d", msg.Code)
 			fmt.Printf(string(msg.Data))
 		}
 	}
