@@ -45,10 +45,12 @@ func (p *Peer) GetBlockHeaders(start, amount, skip uint64) (uint64, error){
 		Reverse: false,
 	}
 
-	data, _   := rlp.EncodeToBytes([]any{reqId, req})
-	headerMsg := NewMsg(GetBlockHeadersMsg, data)
+	data, err := rlp.EncodeToBytes([]any{reqId, req})
+	if err != nil {
+		return 0, err
+	}
 
-	_, err := p.Send(headerMsg)
+	_, err = p.Send(NewMsg(GetBlockHeadersMsg, data))
 	if err != nil {
 		return 0, err
 	}
@@ -57,6 +59,18 @@ func (p *Peer) GetBlockHeaders(start, amount, skip uint64) (uint64, error){
 }
 
 // Request blocks from peer.
-func (p *Peer) GetBlocks(headerHashes []common.Hash) {
-	
+func (p *Peer) GetBlocks(headerHashes []common.Hash) (uint64, error) {
+	reqId := rand.Uint64()
+
+	data, err := rlp.EncodeToBytes([]any{reqId, headerHashes})
+	if err != nil {
+		return 0, nil
+	}
+
+	_, err = p.Send(NewMsg(GetBlockBodiesMsg, data))
+	if err != nil {
+		return 0, err
+	}
+
+	return reqId, nil
 }

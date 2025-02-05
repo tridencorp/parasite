@@ -2,12 +2,15 @@ package main
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"parasite/config"
 	"parasite/key"
 	"parasite/log"
 	"parasite/node"
 	"parasite/p2p"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
@@ -42,6 +45,10 @@ func main() {
 }
 
 func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
+	bytes, err := hex.DecodeString("e55f48b9e8733758dc96abc807f0e398780c95e221053d1664a364b6ff770b40")
+	fmt.Print(err)
+	fmt.Print(bytes)
+	fmt.Print(len(bytes))
 
 	for {
 		msg, err := peer.Read()
@@ -87,10 +94,25 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			}
 
 			log.Info("Headers:\n%V", headers)
-			log.Info("Header Hash:\n%v", headers)
+			hh, err := headers[0].Hash()
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			fmt.Print(hh)
+			log.Info("Header Hash:\n%v", hh)
+
+			// Request block
+			log.Info("Requesting blocks")
+			_, err = peer.GetBlocks([]common.Hash{hh})
+			if err != nil {
+				fmt.Println(err)
+			}
 
 		case p2p.BlockBodiesMsg:
-			log.Info("Get Blocks")
+			log.Info("!!! Get Blocks !!!")
+			fmt.Println(msg.Code)
+			fmt.Println(msg.Data)
 
 		default:
 			fmt.Printf("Unsupported msg code: %d\n", msg.Code)
