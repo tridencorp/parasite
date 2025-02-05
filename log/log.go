@@ -35,9 +35,9 @@ func Configure(conf *Config) error {
 	config = Config{
 		// Setting writers for each log level.
 		ErrorWriters: append(defaultWriters, conf.ErrorWriters...),
-		InfoWriters:  append(defaultWriters, conf.ErrorWriters...),
-		DebugWriters: append(defaultWriters, conf.ErrorWriters...),
-		TraceWriters: append(defaultWriters, conf.ErrorWriters...),
+		InfoWriters:  append(defaultWriters, conf.InfoWriters...),
+		DebugWriters: append(defaultWriters, conf.DebugWriters...),
+		TraceWriters: append(defaultWriters, conf.TraceWriters...),
 	}
 
 	// file, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
