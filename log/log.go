@@ -101,29 +101,29 @@ func Start() {
 }
 
 func Error(format string, args ...any) {
-	log := formatLog("ERROR ", format, args...)
-	config.Logs <- logMsg{"ERROR", (red + log + reset)}
+	prefix := red + "ERROR "
+	config.Logs <- logMsg{"ERROR", formatLog(prefix, format, args...)}
 }
 
 func Info(format string, args ...any) {
-	log := formatLog("INFO ", format, args...)
-	config.Logs <- logMsg{"INFO", (magenta + log + reset)}
+	prefix := magenta + "INFO "
+	config.Logs <- logMsg{"INFO", formatLog(prefix, format, args...)}
 }
 
 func Debug(format string, args ...any) {
-	log := formatLog("DEBUG ", format, args...)
-	config.Logs <- logMsg{"DEBUG", (green + log + reset)}
+	prefix := green + "DEBUG "
+	config.Logs <- logMsg{"DEBUG", formatLog(prefix, format, args...)}
 }
 
 func Trace(format string, args ...any) {
-	log := formatLog("TRACE ", format, args...)
-	config.Logs <- logMsg{"TRACE", (blue + log + reset)}
+	prefix := blue + "TRACE "
+	config.Logs <- logMsg{"TRACE", formatLog(prefix, format, args...)}
 }
 
 // Format log and add default prefix to it.
 func formatLog(prefix, format string, args ...any) string {
 	log := fmt.Sprintf(format, args...)
-	return (prefix + defaultPrefix() + log)
+	return (prefix + defaultPrefix() + log + reset)
 }
 
 // Return default prefix with caller file name and line number. 
