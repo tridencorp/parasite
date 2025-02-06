@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 // This is only basic skeleton. We are working on it, it's ongoing proccess :D
@@ -101,39 +102,43 @@ func Start() {
 }
 
 func Error(format string, args ...any) {
-	prefix := red + "ERROR "
+	prefix := red + "ERROR"
 	config.Logs <- logMsg{"ERROR", formatLog(prefix, format, args...)}
 }
 
 func Info(format string, args ...any) {
-	prefix := magenta + "INFO "
+	prefix := magenta + "INFO"
 	config.Logs <- logMsg{"INFO", formatLog(prefix, format, args...)}
 }
 
 func Debug(format string, args ...any) {
-	prefix := green + "DEBUG "
+	prefix := green + "DEBUG"
 	config.Logs <- logMsg{"DEBUG", formatLog(prefix, format, args...)}
 }
 
 func Trace(format string, args ...any) {
-	prefix := blue + "TRACE "
+	prefix := blue + "TRACE"
 	config.Logs <- logMsg{"TRACE", formatLog(prefix, format, args...)}
 }
 
 // Format log and add default prefix to it.
 func formatLog(prefix, format string, args ...any) string {
 	log := fmt.Sprintf(format, args...)
-	return (prefix + defaultPrefix() + log + reset)
+	return (defaultPrefix(prefix) + log + reset)
 }
 
 // Return default prefix with caller file name and line number. 
 // 
 // @TODO: should we also add caller function name?
-func defaultPrefix() string {
+func defaultPrefix(prefix string) string {
 	_, file, line, _ := runtime.Caller(3)
-
 	file = filepath.Base(file)
-	prefix := fmt.Sprintf("(%s:%d) ", file, line)
+
+	// Remove file extension.
+	file = strings.Trim(file, ".go")
+
+	fileline := fmt.Sprintf("|%s:%d|", file, line)
+	prefix    = fmt.Sprintf("%-10s%-18s", prefix, fileline)
 
 	return prefix
 }
