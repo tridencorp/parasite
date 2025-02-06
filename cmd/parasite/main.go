@@ -31,14 +31,16 @@ func main() {
 		fmt.Print(err)
 	}
 
+	// Starting log. All logs will go to it.
+	go log.Start()
+
 	log.Info("Connecting to peer ...")
 	peer, err := node.Connect(nodes[0], srcPrv)
 	if err != nil {
-		fmt.Printf("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
-		return
+		log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
 	}
 
-	// Sync playground 
+	// Sync playground
 	// snc := flag.Bool("sync", false, "")
 	// flag.Parse()
 
@@ -89,7 +91,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 				fmt.Print(err)
 			}
 
-			log.Info("Headers:\n%V", headers)
+			log.Info("Headers:\n%v", headers)
 			hh, err := headers[0].Hash()
 			if err != nil {
 				fmt.Println(err)
@@ -117,9 +119,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			var disc []DiscReason
 
 			rlp.DecodeBytes(msg.Data, &disc)
-			fmt.Println(disc)
-
-
+			log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
 
 		default:
 			fmt.Printf("Unsupported msg code: %d\n", msg.Code)

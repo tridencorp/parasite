@@ -14,7 +14,14 @@ import (
 var file *os.File
 var config Config
 
+type logMsg struct {
+	level string
+	data  string
+}
+
 type Config struct {
+	Logs chan logMsg
+
 	ErrorWriters []io.StringWriter
 	InfoWriters  []io.StringWriter
 	DebugWriters []io.StringWriter
@@ -42,18 +49,19 @@ func (stdout StdoutWriter) WriteString(log string) (int, error) {
 }
 
 // @TODO: Make it atomic so we can only call it once.
-func Configure(conf *Config) error {
-	// Default writers for stdout and file(disabled for now).
+func Configure(userConf *Config) error {
+	// Default writers for stdout and file (file is disabled for now).
 	defaultWriters := []io.StringWriter{StdoutWriter{}}
 
-	// We are setting package config.
 	config = Config{
 		// Setting writers for each log level.
-		ErrorWriters: append(defaultWriters, conf.ErrorWriters...),
-		InfoWriters:  append(defaultWriters, conf.InfoWriters...),
-		DebugWriters: append(defaultWriters, conf.DebugWriters...),
-		TraceWriters: append(defaultWriters, conf.TraceWriters...),
+		ErrorWriters: append(defaultWriters, userConf.ErrorWriters...),
+		InfoWriters:  append(defaultWriters, userConf.InfoWriters...),
+		DebugWriters: append(defaultWriters, userConf.DebugWriters...),
+		TraceWriters: append(defaultWriters, userConf.TraceWriters...),
 	}
+
+	config.Logs = make(chan logMsg, 100)
 
 	// file, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	// if err != nil {
@@ -62,36 +70,54 @@ func Configure(conf *Config) error {
 	return nil
 }
 
+// Start main goroutine that will receive all logs and will pass them to writers.
+// This way only one goroutine will be responsible for writing things down and it
+// won't slow down the rest of the system.
+func Start() {
+	// Reading logs one by one.
+	for log := range config.Logs {
+		switch log.level {
+    case "ERROR":
+			for _, writer := range config.ErrorWriters {
+				writer.WriteString(log.data)
+			}
+
+    case "INFO":
+			for _, writer := range config.InfoWriters {
+				writer.WriteString(log.data)
+			}
+
+    case "DEBUG":
+			for _, writer := range config.DebugWriters {
+				writer.WriteString(log.data)
+			}
+
+		case "TRACE":
+			for _, writer := range config.TraceWriters {
+				writer.WriteString(log.data)
+			}
+    }
+	}
+}
+
 func Error(format string, args ...any) {
 	log := formatLog("ERROR ", format, args...)
-
-	for _, writer := range config.ErrorWriters {
-		writer.WriteString(red + log + reset)
-	}
+	config.Logs <- logMsg{"ERROR", (red + log + reset)}
 }
 
 func Info(format string, args ...any) {
 	log := formatLog("INFO ", format, args...)
-
-	for _, writer := range config.InfoWriters {
-		writer.WriteString(magenta + log + reset)
-	}
+	config.Logs <- logMsg{"INFO", (magenta + log + reset)}
 }
 
 func Debug(format string, args ...any) {
 	log := formatLog("DEBUG ", format, args...)
-
-	for _, writer := range config.DebugWriters {
-		writer.WriteString(green + log + reset)
-	}
+	config.Logs <- logMsg{"DEBUG", (green + log + reset)}
 }
 
 func Trace(format string, args ...any) {
 	log := formatLog("TRACE ", format, args...)
-
-	for _, writer := range config.TraceWriters {
-		writer.WriteString(blue + log + reset)
-	}
+	config.Logs <- logMsg{"TRACE", (blue + log + reset)}
 }
 
 // Format log and add default prefix to it.
