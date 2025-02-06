@@ -16,6 +16,8 @@
 
 Small P2P/RPC server for ETH and BTC.
 
+# GOAL
+The goal is to have something small, easy to understand, with fast TCP api and much more simpler database design without stupid Trie (don't confused it with Merkle Tree which is actually neat !).
 
 # INSTALL
 ```go
@@ -29,3 +31,5 @@ go build ./cmd/parasite
 ```go
 ./parasite
 ```
+# CURRENT STATE
+It’s under heavy development. I’m switching between many projects for Trieden right now, so there will be progress — baby steps.
