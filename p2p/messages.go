@@ -3,7 +3,6 @@ package p2p
 import (
 	"parasite/block"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -31,12 +30,29 @@ const (
 	GetBlockBodiesMsg             = 0x15
 	BlockBodiesMsg                = 0x16
 	NewBlockMsg                   = 0x17 // Not supported anymore
-	NewPooledTranasctionHashesMsg = 0x18
+	NewPooledTransactionHashesMsg = 0x18
 	GetPooledTransactionsMsg      = 0x19
 	PooledTransactionsMsg         = 0x1A
 	GetReceiptsMsg                = 0x1B
 	ReceiptsMsg                   = 0x1C
 )
+
+var DiscReasons = []string{
+	"disconnect requested",                // 0x00
+	"network error",                       // 0x01
+	"breach of protocol",                  // 0x02
+	"useless peer",                        // 0x03
+	"too many peers",                      // 0x04
+	"already connected",                   // ...
+	"incompatible p2p protocol version",
+	"invalid node identity",
+	"client quitting",
+	"unexpected identity",
+	"connected to self",
+	"read timeout",
+	"subprotocol error",
+	"invalid disconnect reason",
+}
 
 type Capability struct {
 	Name    string
@@ -64,8 +80,4 @@ type GetBlockHeaders struct {
 	Amount  uint64
 	Skip    uint64
 	Reverse bool
-}
-
-type GetBlockBodies struct {
-	HeaderHashes []common.Hash
 }
