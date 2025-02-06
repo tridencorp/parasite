@@ -12,6 +12,20 @@
 
 ```
 
-# Parasite
+# PARASITE
 
 Small P2P/RPC server for ETH and BTC.
+
+
+# INSTALL
+```go
+go mod init parasite
+go mod tidy
+
+go build ./cmd/parasite
+```
+
+# RUN
+```go
+./parasite
+```

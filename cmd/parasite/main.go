@@ -10,6 +10,7 @@ import (
 	"parasite/p2p"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func main() {
@@ -33,7 +34,8 @@ func main() {
 	log.Info("Connecting to peer ...")
 	peer, err := node.Connect(nodes[0], srcPrv)
 	if err != nil {
-		fmt.Print(err)
+		fmt.Printf("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
+		return
 	}
 
 	// Sync playground 
@@ -107,6 +109,17 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			log.Info("!!! Get Blocks !!!")
 			fmt.Println(msg.Code)
 			fmt.Println(msg.Data)
+
+		case p2p.DiscMsg:
+			log.Error("!!! DISCONECT FROM NODE !!!")
+
+			type DiscReason uint8
+			var disc []DiscReason
+
+			rlp.DecodeBytes(msg.Data, &disc)
+			fmt.Println(disc)
+
+
 
 		default:
 			fmt.Printf("Unsupported msg code: %d\n", msg.Code)
