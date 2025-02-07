@@ -42,6 +42,13 @@ const (
 	reset   = "\033[0m"
 )
 
+const (
+	ErrorPrefix = red     + "ERROR"
+	DebugPrefix = magenta + "DEBUG"
+	InfoPrefix  = green   + "INFO"
+	TracePrefix = blue    + "TRACE"
+)
+
 // Quick implementation of io.StringWriter for stdout.
 type StdoutWriter struct {}
 
@@ -102,23 +109,19 @@ func Start() {
 }
 
 func Error(format string, args ...any) {
-	prefix := red + "ERROR"
-	config.Logs <- logMsg{"ERROR", formatLog(prefix, format, args...)}
+	config.Logs <- logMsg{"ERROR", formatLog(ErrorPrefix, format, args...)}
 }
 
 func Info(format string, args ...any) {
-	prefix := magenta + "INFO"
-	config.Logs <- logMsg{"INFO", formatLog(prefix, format, args...)}
+	config.Logs <- logMsg{"INFO", formatLog(InfoPrefix, format, args...)}
 }
 
 func Debug(format string, args ...any) {
-	prefix := green + "DEBUG"
-	config.Logs <- logMsg{"DEBUG", formatLog(prefix, format, args...)}
+	config.Logs <- logMsg{"DEBUG", formatLog(DebugPrefix, format, args...)}
 }
 
 func Trace(format string, args ...any) {
-	prefix := blue + "TRACE"
-	config.Logs <- logMsg{"TRACE", formatLog(prefix, format, args...)}
+	config.Logs <- logMsg{"TRACE", formatLog(TracePrefix, format, args...)}
 }
 
 // Format log and add default prefix to it.
