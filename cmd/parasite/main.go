@@ -94,7 +94,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     if msg.Code == p2p.BlockHeadersMsg {
       log.Info("Get headers")
 
-      
       res, err := p2p.BlockHeadersRes(msg)
       if err != nil {
         log.Error("%v", err)
