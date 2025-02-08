@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"math/rand/v2"
+	"parasite/log"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
@@ -10,12 +11,13 @@ import (
 
 // Main struct handling P2P communication.
 type Peer struct {
-	conn *rlpx.Conn
+	conn     *rlpx.Conn
+	messages chan Msg
 }
 
 // Return new peer.
 func NewPeer(conn *rlpx.Conn) *Peer {
-	return &Peer{conn: conn}
+	return &Peer{conn: conn, messages: make(chan Msg, 100)}
 }
 
 // Reads message from a connected peer.
@@ -29,9 +31,20 @@ func (p *Peer) Read() (Msg, error) {
 	return Msg{Code: code, Size: uint32(size), Data: data}, err
 }
 
-// Send message to peer.
-func (p *Peer) Send(msg Msg) (uint32, error) {
-	return p.conn.Write(msg.Code, msg.Data)
+// Send msg to peer messages channel.
+func (p *Peer) Send(msg Msg) {
+	p.messages <- msg
+}
+
+// Start peer writer goroutine. There should be only one writer per peer.
+func (p *Peer) StartWriter() {
+	for msg := range p.messages {
+		_, err := p.conn.Write(msg.Code, msg.Data)
+
+		if err != nil {
+			log.Error("%s", err)
+		}
+	}
 }
 
 // Request bunch of block headers from peer.
@@ -50,11 +63,7 @@ func (p *Peer) GetBlockHeaders(start, amount, skip uint64) (uint64, error){
 		return 0, err
 	}
 
-	_, err = p.Send(NewMsg(GetBlockHeadersMsg, data))
-	if err != nil {
-		return 0, err
-	}
-
+	p.Send(NewMsg(GetBlockHeadersMsg, data))
 	return reqId, nil
 }
 
@@ -67,10 +76,6 @@ func (p *Peer) GetBlocks(headerHashes []common.Hash) (uint64, error) {
 		return 0, nil
 	}
 
-	_, err = p.Send(NewMsg(GetBlockBodiesMsg, data))
-	if err != nil {
-		return 0, err
-	}
-
+	p.Send(NewMsg(GetBlockBodiesMsg, data))
 	return reqId, nil
 }

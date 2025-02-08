@@ -41,6 +41,7 @@ func main() {
   }
 
   go StartPeerReader(peer, srcPrv)
+  go peer.StartWriter()
 
   // Let's wait indefinitely for now.
   dummy := make(chan bool)
@@ -131,5 +132,5 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     // Just print it for now.
     fmt.Printf("Unsupported msg code: %d\n", msg.Code)
     fmt.Printf(string(msg.Data))
-	}
+  }
 }
