@@ -62,7 +62,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 
-	setStatusfields(&handshake, *srcPrv)
+	setHandshakefields(&handshake, *srcPrv)
 
 	buf := bytes.Buffer{}
 	err = rlp.Encode(&buf, handshake)
@@ -85,8 +85,8 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 	return p2p.NewPeer(dst), nil
 }
 
-// Modifying our status a little.
-func setStatusfields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
+// Modifying our handshake.
+func setHandshakefields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
 	// ID is basically our servers public key.
 	pub := srcPrv.PublicKey
 	handshake.ID = key.PubToBytes(&pub)
