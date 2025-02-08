@@ -2,8 +2,6 @@ package p2p
 
 import (
 	"parasite/block"
-
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // All ETH68 message codes.
@@ -52,22 +50,6 @@ var DiscReasons = []string{
 	"read timeout",
 	"subprotocol error",
 	"invalid disconnect reason",
-}
-
-type Capability struct {
-	Name    string
-	Version uint
-}
-
-type Handshake struct {
-	Version    uint64
-	Name       string
-	Caps       []Capability
-	ListenPort uint64
-	ID         []byte
-
-	// Currently unused, but required for compatibility with ETH.
-	Rest []rlp.RawValue `rlp:"tail"`
 }
 
 type BlockHeaders struct {

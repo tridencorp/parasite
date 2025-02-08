@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/rand/v2"
 	"parasite/config"
 	"parasite/key"
 	"parasite/log"
@@ -43,6 +44,35 @@ func main() {
   go StartPeerReader(peer, srcPrv)
   go peer.StartWriter()
 
+  // Lets ask for block headers
+  log.Info("Getting headers request")
+
+  reqId := rand.Uint64()
+
+	req := p2p.GetBlockHeaders{
+		Start:   uint64(14678570),
+		Amount:  uint64(1),
+		Skip:    uint64(0),
+		Reverse: false,
+	}
+
+	data, err := rlp.EncodeToBytes([]any{reqId, req})
+	if err != nil {
+    log.Error("%s", err)
+	}
+
+  handler := make(chan p2p.Msg) 
+
+  msg := p2p.NewMsg(p2p.GetBlockHeadersMsg, data)
+  msg.Handler = handler
+
+  peer.Send(msg)
+
+  for msg := range handler {
+    fmt.Println("got headers")
+    fmt.Printf("msg: %v", msg)
+  }
+
   // Let's wait indefinitely for now.
   dummy := make(chan bool)
   <- dummy 
@@ -60,13 +90,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
       peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
-
-      fmt.Println("Sending headers ...")
-      _, err := peer.GetBlockHeaders(14678570, 1, 0)
-      if err != nil {
-        fmt.Print(err)
-      }
-
       continue
     }
 
@@ -74,7 +97,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     if msg.Code == p2p.GetBlockHeadersMsg {
       fmt.Println(msg.Code)
       fmt.Println(msg.Data)    
-
       continue
     }
 
@@ -93,9 +115,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
         fmt.Println(err)
       }
 
-      fmt.Print(hh)
-      log.Info("Header Hash:\n%v", hh)
-
       // Request block
       log.Info("Requesting blocks")
       _, err = peer.GetBlocks([]common.Hash{hh})
@@ -110,8 +129,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     if msg.Code == p2p.BlockBodiesMsg {
       log.Info("!!! Get Blocks !!!")
       fmt.Println(msg.Code)
-      fmt.Println(msg.Data)    
-
       continue
     }
 
@@ -124,7 +141,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
       rlp.DecodeBytes(msg.Data, &disc)
       log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
-
       continue
     }
 

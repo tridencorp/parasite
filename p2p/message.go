@@ -2,9 +2,13 @@ package p2p
 
 // Message sent over the p2p network.
 type Msg struct {
-	Code uint64
-	Size uint32
-	Data []byte
+  Code uint64
+  Size uint32
+  Data []byte
+  
+  // Each message has handler to which response 
+  // for requested message will be send.
+  Handler chan Msg
 }
 
 func NewMsg(code int, data []byte) Msg {
