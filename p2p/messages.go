@@ -1,7 +1,10 @@
 package p2p
 
 import (
+	"math/rand/v2"
 	"parasite/block"
+
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // All ETH68 message codes.
@@ -52,14 +55,35 @@ var DiscReasons = []string{
 	"invalid disconnect reason",
 }
 
-type BlockHeaders struct {
-	RequestId uint64
-	Headers []*block.BlockHeader
-}
+// Block headers
 
-type GetBlockHeaders struct {
+type blockHeadersReq struct {
 	Start   uint64
 	Amount  uint64
 	Skip    uint64
 	Reverse bool
+}
+
+type blockHeadersRes struct {
+	ReqId   uint64
+	Headers []*block.BlockHeader
+}
+
+// Create BlockHeaders request message.
+func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
+	reqID := rand.Uint64()
+	
+	req := blockHeadersReq{
+		Start:   start,
+		Amount:  amount,
+		Skip:    skip,
+		Reverse: false,
+	}
+
+	data, err := rlp.EncodeToBytes([]any{reqID, req})
+	if err != nil {
+		return Msg{}, err
+	}
+
+	return NewMsg(GetBlockHeadersMsg, data), nil
 }

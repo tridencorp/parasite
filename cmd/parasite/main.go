@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"math/rand/v2"
 	"parasite/config"
 	"parasite/key"
 	"parasite/log"
@@ -47,23 +46,12 @@ func main() {
   // Lets ask for block headers
   log.Info("Getting headers request")
 
-  reqId := rand.Uint64()
-
-	req := p2p.GetBlockHeaders{
-		Start:   uint64(14678570),
-		Amount:  uint64(1),
-		Skip:    uint64(0),
-		Reverse: false,
-	}
-
-	data, err := rlp.EncodeToBytes([]any{reqId, req})
-	if err != nil {
+  msg, err := p2p.BlockHeadersReq(14678570, 1, 0, false)
+  if err != nil {
     log.Error("%s", err)
-	}
+  }
 
   handler := make(chan p2p.Msg) 
-
-  msg := p2p.NewMsg(p2p.GetBlockHeadersMsg, data)
   msg.Handler = handler
 
   peer.Send(msg)
@@ -89,6 +77,7 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
+      fmt.Print("Got Ping")
       peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
       continue
     }
