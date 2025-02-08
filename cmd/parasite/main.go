@@ -55,35 +55,44 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			break
 		}
 
-		switch msg.Code {
-		case p2p.HandshakeMsg:
+    if msg.Code == p2p.HandshakeMsg {
 			err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
 			if err != nil {
 				fmt.Print(err)
 			}
 
-		case p2p.StatusMsg:
+      continue
+    }
+
+    if msg.Code == p2p.StatusMsg {
 			err := p2p.HandleStatus(msg, peer)
 			if err != nil {
 				fmt.Print(err)
 			}
 
-		case p2p.PingMsg:
+      continue
+    }
+
+    if msg.Code == p2p.PingMsg {
 			peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
 
 			fmt.Println("Sending headers ...")
-			reqId, err := peer.GetBlockHeaders(14678570, 1, 0)
+			_, err := peer.GetBlockHeaders(14678570, 1, 0)
 			if err != nil {
 				fmt.Print(err)
 			}
 
-			fmt.Print(reqId)
+      continue
+    }
 
-		case p2p.GetBlockHeadersMsg:
+    if msg.Code == p2p.GetBlockHeadersMsg {
 			fmt.Println(msg.Code)
-			fmt.Println(msg.Data)
+			fmt.Println(msg.Data)    
 
-		case p2p.BlockHeadersMsg:
+      continue
+    }
+
+    if msg.Code == p2p.BlockHeadersMsg {
 			log.Info("Get headers")
 
 			headers, err := p2p.HandleBlockHeaders(msg)
@@ -107,12 +116,18 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 				fmt.Println(err)
 			}
 
-		case p2p.BlockBodiesMsg:
+      continue
+    }
+
+    if msg.Code == p2p.BlockBodiesMsg {
 			log.Info("!!! Get Blocks !!!")
 			fmt.Println(msg.Code)
-			fmt.Println(msg.Data)
+			fmt.Println(msg.Data)    
 
-		case p2p.DiscMsg:
+      continue
+    }
+
+    if msg.Code == p2p.DiscMsg {
 			log.Error("!!! DISCONECT FROM NODE !!!")
 
 			type DiscReason uint8
@@ -121,9 +136,10 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			rlp.DecodeBytes(msg.Data, &disc)
 			log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
 
-		default:
-			fmt.Printf("Unsupported msg code: %d\n", msg.Code)
-			fmt.Printf(string(msg.Data))
-		}
+      continue
+    }
+
+    fmt.Printf("Unsupported msg code: %d\n", msg.Code)
+    fmt.Printf(string(msg.Data))
 	}
 }
