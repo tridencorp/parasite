@@ -78,7 +78,7 @@ type blockHeadersRes struct {
 
 // Create BlockHeaders request message.
 func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
-	reqID := rand.Uint64()
+	reqId := rand.Uint64()
 	
 	req := blockHeadersReq{
 		Start:   start,
@@ -87,12 +87,27 @@ func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
 		Reverse: false,
 	}
 
-	data, err := rlp.EncodeToBytes([]any{reqID, req})
+	data, err := rlp.EncodeToBytes([]any{reqId, req})
 	if err != nil {
 		return Msg{}, err
 	}
 
-	return NewMsg(GetBlockHeadersMsg, data), nil
+	msg := NewMsg(GetBlockHeadersMsg, data)
+	msg.ReqId = reqId
+
+	return msg, nil
+}
+
+// Parse BlockHeaders response.
+func BlockHeadersRes(msg Msg) (*blockHeadersRes, error) {
+	headers := new(blockHeadersRes)
+
+	err := rlp.DecodeBytes(msg.Data, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return headers, nil
 }
 
 // Create GetBlockBodies request message.
@@ -106,3 +121,4 @@ func BlocksReq(headerHashes []common.Hash) (Msg, error) {
 
 	return NewMsg(GetBlockBodiesMsg, data), nil
 }
+

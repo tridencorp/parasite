@@ -53,11 +53,12 @@ func main() {
 
   handler := make(chan p2p.Msg) 
   msg.Handler = handler
+  fmt.Printf("ID: %d", msg.ReqId)
 
   peer.Send(msg)
 
   for msg := range handler {
-    fmt.Println("got headers")
+    fmt.Println("!!! got headers from handler !!!")
     fmt.Printf("msg: %v", msg)
   }
 
@@ -93,13 +94,21 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     if msg.Code == p2p.BlockHeadersMsg {
       log.Info("Get headers")
 
-      headers, err := p2p.HandleBlockHeaders(msg)
+      
+      res, err := p2p.BlockHeadersRes(msg)
       if err != nil {
         log.Error("%v", err)
       }
 
-      log.Info("Headers:%v", headers)
-      hh, err := headers[0].Hash()
+      log.Error("%d", res.ReqId)
+      reqMsg, exists := peer.RequestedMsgs[res.ReqId]
+      if exists {
+        log.Error("exists ........")
+        reqMsg.Handler <- msg
+      }
+
+      log.Info("Headers:%v", res.Headers)
+      hh, err := res.Headers[0].Hash()
       if err != nil {
         log.Error("%v", err)
       }
@@ -118,7 +127,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
     // (22) BlockBodiesMsg
     if msg.Code == p2p.BlockBodiesMsg {
       log.Info("!!! Get Blocks !!!")
-      log.Info("%v", msg.Data)
       continue
     }
 
