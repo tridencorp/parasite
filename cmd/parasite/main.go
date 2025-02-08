@@ -48,100 +48,100 @@ func main() {
 }
 
 func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
-	for {
-		msg, err := peer.Read()
-		if err != nil {
-			fmt.Print(err)
-			break
-		}
+  for {
+    msg, err := peer.Read()
+    if err != nil {
+      fmt.Print(err)
+      break
+    }
 
     // (0) HandshakeMsg
     if msg.Code == p2p.HandshakeMsg {
-			err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
-			if err != nil {
-				fmt.Print(err)
-			}
-
+      err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
+      if err != nil {
+        fmt.Print(err)
+      }
+      
       continue
     }
 
     // (16) StatusMsg
     if msg.Code == p2p.StatusMsg {
-			err := p2p.HandleStatus(msg, peer)
-			if err != nil {
-				fmt.Print(err)
-			}
+      err := p2p.HandleStatus(msg, peer)
+      if err != nil {
+        fmt.Print(err)
+      }
 
       continue
     }
 
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
-			peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
+      peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
 
-			fmt.Println("Sending headers ...")
-			_, err := peer.GetBlockHeaders(14678570, 1, 0)
-			if err != nil {
-				fmt.Print(err)
-			}
+      fmt.Println("Sending headers ...")
+      _, err := peer.GetBlockHeaders(14678570, 1, 0)
+      if err != nil {
+        fmt.Print(err)
+      }
 
       continue
     }
 
     // (19) GetBlockHeadersMsg
     if msg.Code == p2p.GetBlockHeadersMsg {
-			fmt.Println(msg.Code)
-			fmt.Println(msg.Data)    
+      fmt.Println(msg.Code)
+      fmt.Println(msg.Data)    
 
       continue
     }
 
     // (20) BlockHeadersMsg
     if msg.Code == p2p.BlockHeadersMsg {
-			log.Info("Get headers")
+      log.Info("Get headers")
 
-			headers, err := p2p.HandleBlockHeaders(msg)
-			if err != nil {
-				fmt.Print(err)
-			}
+      headers, err := p2p.HandleBlockHeaders(msg)
+      if err != nil {
+        fmt.Print(err)
+      }
 
-			log.Info("Headers:\n%v", headers)
-			hh, err := headers[0].Hash()
-			if err != nil {
-				fmt.Println(err)
-			}
+      log.Info("Headers:\n%v", headers)
+      hh, err := headers[0].Hash()
+      if err != nil {
+        fmt.Println(err)
+      }
 
-			fmt.Print(hh)
-			log.Info("Header Hash:\n%v", hh)
+      fmt.Print(hh)
+      log.Info("Header Hash:\n%v", hh)
 
-			// Request block
-			log.Info("Requesting blocks")
-			_, err = peer.GetBlocks([]common.Hash{hh})
-			if err != nil {
-				fmt.Println(err)
-			}
+      // Request block
+      log.Info("Requesting blocks")
+      _, err = peer.GetBlocks([]common.Hash{hh})
+      if err != nil {
+        fmt.Println(err)
+      }
 
       continue
     }
 
     // (22) BlockBodiesMsg
     if msg.Code == p2p.BlockBodiesMsg {
-			log.Info("!!! Get Blocks !!!")
-			fmt.Println(msg.Code)
-			fmt.Println(msg.Data)    
+      log.Info("!!! Get Blocks !!!")
+      fmt.Println(msg.Code)
+      fmt.Println(msg.Data)    
 
       continue
     }
 
     // (1) DiscMsg
     if msg.Code == p2p.DiscMsg {
-			log.Error("!!! DISCONECT FROM NODE !!!")
+      log.Error("!!! DISCONECT FROM NODE !!!")
 
-			type DiscReason uint8
-			var disc []DiscReason
+      type DiscReason uint8
+      var disc []DiscReason
 
-			rlp.DecodeBytes(msg.Data, &disc)
-			log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
+      rlp.DecodeBytes(msg.Data, &disc)
+      log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
 
       continue
     }
