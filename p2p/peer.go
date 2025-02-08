@@ -10,11 +10,24 @@ import (
 type Peer struct {
 	conn     *rlpx.Conn
 	messages chan Msg
+
+	// Track requested messages so we can verify if
+	// an incoming message is the one we requested.
+	// 
+	// It will also enable us to find requested messages
+	// and use correct handler for processing.
+	// 
+	// We will use requestId for finding req/res match.
+	RequestedMsgs map[uint64]Msg
 }
 
 // Return new peer.
 func NewPeer(conn *rlpx.Conn) *Peer {
-	return &Peer{conn: conn, messages: make(chan Msg, 100)}
+	return &Peer{
+		conn: conn, 
+		messages: make(chan Msg, 100),
+		RequestedMsgs: make(map[uint64]Msg),
+	}
 }
 
 // Reads message from a connected peer.
@@ -30,6 +43,7 @@ func (p *Peer) Read() (Msg, error) {
 
 // Send msg to peer messages channel.
 func (p *Peer) Send(msg Msg) {
+	p.RequestedMsgs[msg.ReqId] = msg
 	p.messages <- msg
 }
 
