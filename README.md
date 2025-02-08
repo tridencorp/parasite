@@ -32,4 +32,4 @@ go build ./cmd/parasite
 ./parasite
 ```
 # CURRENT STATE
-It’s under heavy development. I’m switching between many projects for Trieden right now, so there will be progress — baby steps.
+It’s under heavy development. I’m switching between many projects for Triden right now, so progress will come — baby steps.
