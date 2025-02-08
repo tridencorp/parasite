@@ -55,6 +55,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 			break
 		}
 
+    // (0) HandshakeMsg
     if msg.Code == p2p.HandshakeMsg {
 			err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
 			if err != nil {
@@ -64,6 +65,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (16) StatusMsg
     if msg.Code == p2p.StatusMsg {
 			err := p2p.HandleStatus(msg, peer)
 			if err != nil {
@@ -73,6 +75,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (2) PingMsg
     if msg.Code == p2p.PingMsg {
 			peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
 
@@ -85,6 +88,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (19) GetBlockHeadersMsg
     if msg.Code == p2p.GetBlockHeadersMsg {
 			fmt.Println(msg.Code)
 			fmt.Println(msg.Data)    
@@ -92,6 +96,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (20) BlockHeadersMsg
     if msg.Code == p2p.BlockHeadersMsg {
 			log.Info("Get headers")
 
@@ -119,6 +124,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (22) BlockBodiesMsg
     if msg.Code == p2p.BlockBodiesMsg {
 			log.Info("!!! Get Blocks !!!")
 			fmt.Println(msg.Code)
@@ -127,6 +133,7 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // (1) DiscMsg
     if msg.Code == p2p.DiscMsg {
 			log.Error("!!! DISCONECT FROM NODE !!!")
 
@@ -139,6 +146,8 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // If we are here then we have unsupported message. 
+    // Just print it for now.
     fmt.Printf("Unsupported msg code: %d\n", msg.Code)
     fmt.Printf(string(msg.Data))
 	}
