@@ -48,8 +48,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 
-	// Perform post init handshake. 
-	// (0) HandshakeMsg 
+	// (0) HandshakeMsg: Perform post init handshake.
 	handshake := Handshake{}
 
 	_, data, _, err := dst.Read()
@@ -80,6 +79,19 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 	}
 
 	_, err = dst.Write(p2p.HandshakeMsg, buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	// (16) StatusMsg: Exchange status msg.
+	// 
+	// @HACK: We just resend the same status that we got from remote peer.
+	_, data, _, err = dst.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = dst.Write(p2p.StatusMsg, data)
 	if err != nil {
 		return nil, err
 	}

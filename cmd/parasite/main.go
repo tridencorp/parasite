@@ -55,16 +55,6 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       break
     }
 
-    // (16) StatusMsg
-    if msg.Code == p2p.StatusMsg {
-      err := p2p.HandleStatus(msg, peer)
-      if err != nil {
-        fmt.Print(err)
-      }
-
-      continue
-    }
-
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
       peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
