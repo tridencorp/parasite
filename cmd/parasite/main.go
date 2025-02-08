@@ -55,16 +55,6 @@ func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       break
     }
 
-    // (0) HandshakeMsg
-    if msg.Code == p2p.HandshakeMsg {
-      err := p2p.HandleHandshake(msg, peer, &srcPrv.PublicKey)
-      if err != nil {
-        fmt.Print(err)
-      }
-      
-      continue
-    }
-
     // (16) StatusMsg
     if msg.Code == p2p.StatusMsg {
       err := p2p.HandleStatus(msg, peer)
