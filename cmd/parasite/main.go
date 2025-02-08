@@ -40,14 +40,19 @@ func main() {
 		log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
 	}
 
-	// Sync playground
+	// Sync playgroun
 	// snc := flag.Bool("sync", false, "")
 	// flag.Parse()
 
-	StartPeer(peer, srcPrv)
+	go StartPeerReader(peer, srcPrv)
+
+  // Let's wait indefinitely for now.
+  dummy := make(chan bool)
+  <- dummy 
 }
 
-func StartPeer(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
+// Start peer reader. There should be only one reader per peer.
+func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
   for {
     msg, err := peer.Read()
     if err != nil {

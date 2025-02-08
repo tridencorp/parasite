@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type Capability struct {
+type Cap struct {
 	Name    string
 	Version uint
 }
@@ -19,7 +19,7 @@ type Capability struct {
 type Handshake struct {
 	Version    uint64
 	Name       string
-	Caps       []Capability
+	Caps       []Cap
 	ListenPort uint64
 	ID         []byte
 
@@ -62,7 +62,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 
-	setHandshakefields(&handshake, *srcPrv)
+	setHandshakeFields(&handshake, *srcPrv)
 
 	buf := bytes.Buffer{}
 	err = rlp.Encode(&buf, handshake)
@@ -86,13 +86,13 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 }
 
 // Modifying our handshake.
-func setHandshakefields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
+func setHandshakeFields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
 	// ID is basically our servers public key.
 	pub := srcPrv.PublicKey
 	handshake.ID = key.PubToBytes(&pub)
 
-	// We won't handle snap protocol for now, leave only newest eth.
-	handshake.Caps = []Capability{{"eth", p2p.ETH}}
+	// We support only eth protocol for now.
+	handshake.Caps = []Cap{{"eth", p2p.ETH}}
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
