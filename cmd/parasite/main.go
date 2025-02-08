@@ -9,7 +9,6 @@ import (
 	"parasite/node"
 	"parasite/p2p"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -34,6 +33,8 @@ func main() {
   // Starting log. All logs will go to it.
   go log.Start()
 
+  // !!! TESTING PLAYGROUND !!!
+  // 
   log.Info("Connecting to peer ...")
   peer, err := node.Connect(nodes[0], srcPrv)
   if err != nil {
@@ -44,7 +45,7 @@ func main() {
   go peer.StartWriter()
 
   // Lets ask for block headers
-  log.Info("Getting headers request")
+  log.Info("Block Headers request")
 
   msg, err := p2p.BlockHeadersReq(14678570, 1, 0, false)
   if err != nil {
@@ -53,8 +54,6 @@ func main() {
 
   handler := make(chan p2p.Msg) 
   msg.Handler = handler
-  fmt.Printf("ID: %d", msg.ReqId)
-
   peer.Send(msg)
 
   for msg := range handler {
@@ -78,7 +77,7 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
-      log.Info("Got Ping")
+      log.Info("!!! Got Ping !!!")
       peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
       continue
     }
@@ -92,40 +91,19 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
     // (20) BlockHeadersMsg
     if msg.Code == p2p.BlockHeadersMsg {
-      log.Info("Get headers")
+      log.Info("!!! Got headers !!!")
 
       res, err := p2p.BlockHeadersRes(msg)
       if err != nil {
         log.Error("%v", err)
       }
 
-      log.Error("%d", res.ReqId)
+      // Send msg with requsted headers to our handler.
       reqMsg, exists := peer.RequestedMsgs[res.ReqId]
       if exists {
-        log.Error("exists ........")
         reqMsg.Handler <- msg
       }
 
-      log.Info("Headers:%v", res.Headers)
-      hh, err := res.Headers[0].Hash()
-      if err != nil {
-        log.Error("%v", err)
-      }
-
-      // Request block
-      log.Info("Requesting blocks")
-      msg, err = p2p.BlocksReq([]common.Hash{hh})
-      if err != nil {
-        log.Error("%v", err)
-      }
-
-      peer.Send(msg)
-      continue
-    }
-
-    // (22) BlockBodiesMsg
-    if msg.Code == p2p.BlockBodiesMsg {
-      log.Info("!!! Get Blocks !!!")
       continue
     }
 
@@ -141,8 +119,15 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
+    // @TODO: Need to be implemented
+    if msg.Code == p2p.BlockBodiesMsg    { log.Error("Implement %d", p2p.BlockBodiesMsg)    ;continue}
+    if msg.Code == p2p.TransactionsMsg   { log.Error("Implement %d", p2p.TransactionsMsg)   ;continue}
+    if msg.Code == p2p.GetBlockBodiesMsg { log.Error("Implement %d", p2p.GetBlockBodiesMsg) ;continue}
+    if msg.Code == p2p.GetReceiptsMsg    { log.Error("Implement %d", p2p.GetReceiptsMsg)    ;continue}
+    if msg.Code == p2p.ReceiptsMsg       { log.Error("Implement %d", p2p.ReceiptsMsg)       ;continue}
+
     // If we are here then we have unsupported message. 
     // Just print it for now.
-    log.Error("Unsupported msg code: %d\n", msg.Code)
+    log.Error("Unknown msg code: %d\n", msg.Code)
   }
 }
