@@ -74,7 +74,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	// (16) StatusMsg: Exchange status msg.
 	// 
 	err = exchangeStatus(dst)

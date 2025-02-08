@@ -95,10 +95,7 @@ func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
 	return NewMsg(GetBlockHeadersMsg, data), nil
 }
 
-
-// Blocks
-
-// Request blocks from peer.
+// Create GetBlockBodies request message.
 func BlocksReq(headerHashes []common.Hash) (Msg, error) {
 	reqId := rand.Uint64()
 

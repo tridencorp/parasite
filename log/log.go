@@ -141,7 +141,7 @@ func defaultPrefix(prefix string) string {
 	file = strings.Trim(file, ".go")
 
 	fileline := fmt.Sprintf("|%s:%d|", file, line)
-	prefix    = fmt.Sprintf("%-10s%-18s", prefix, fileline)
+	prefix    = fmt.Sprintf("%-11s%-18s", prefix, fileline)
 
 	return prefix
 }

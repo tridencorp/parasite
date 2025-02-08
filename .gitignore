@@ -6,7 +6,10 @@ go.work.sum
 .env
 
 # executables
-.parasite
-.main
+parasite
+main
 
 *.log
+
+# just for now
+eth_nodes.json

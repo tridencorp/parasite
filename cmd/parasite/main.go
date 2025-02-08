@@ -71,21 +71,21 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
   for {
     msg, err := peer.Read()
     if err != nil {
-      fmt.Print(err)
+      log.Error("%v", err)
       break
     }
 
     // (2) PingMsg
     if msg.Code == p2p.PingMsg {
-      fmt.Print("Got Ping")
+      log.Info("Got Ping")
       peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
       continue
     }
 
     // (19) GetBlockHeadersMsg
     if msg.Code == p2p.GetBlockHeadersMsg {
-      fmt.Println(msg.Code)
-      fmt.Println(msg.Data)    
+      log.Info("%d", msg.Code)
+      log.Info("%v", msg.Data)    
       continue
     }
 
@@ -95,29 +95,30 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
       headers, err := p2p.HandleBlockHeaders(msg)
       if err != nil {
-        fmt.Print(err)
+        log.Error("%v", err)
       }
 
-      log.Info("Headers:\n%v", headers)
+      log.Info("Headers:%v", headers)
       hh, err := headers[0].Hash()
       if err != nil {
-        fmt.Println(err)
+        log.Error("%v", err)
       }
 
       // Request block
       log.Info("Requesting blocks")
-      _, err = p2p.BlocksReq([]common.Hash{hh})
+      msg, err = p2p.BlocksReq([]common.Hash{hh})
       if err != nil {
-        fmt.Println(err)
+        log.Error("%v", err)
       }
 
+      peer.Send(msg)
       continue
     }
 
     // (22) BlockBodiesMsg
     if msg.Code == p2p.BlockBodiesMsg {
       log.Info("!!! Get Blocks !!!")
-      fmt.Println(msg.Code)
+      log.Info("%v", msg.Data)
       continue
     }
 
@@ -135,7 +136,6 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
     // If we are here then we have unsupported message. 
     // Just print it for now.
-    fmt.Printf("Unsupported msg code: %d\n", msg.Code)
-    fmt.Printf(string(msg.Data))
+    log.Error("Unsupported msg code: %d\n", msg.Code)
   }
 }
