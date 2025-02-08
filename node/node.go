@@ -49,6 +49,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 	}
 
 	// (0) HandshakeMsg: Perform post init handshake.
+	//
 	handshake := Handshake{}
 
 	_, data, _, err := dst.Read()
@@ -62,15 +63,7 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 
-	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
-	srcPub := srcPrv.PublicKey
-	handshake.ID = crypto.FromECDSAPub(&srcPub)[1:]
-
-	// We won't handle snap protocol for now, leave only newest eth.
-	handshake.Caps = []Capability{{"eth", p2p.ETH}}
-
-	// This will disable the snappy compression.
-	handshake.Version = 0
+	setStatusfields(&handshake, *srcPrv)
 
 	buf := bytes.Buffer{}
 	err = rlp.Encode(&buf, handshake)
@@ -85,16 +78,39 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 
 	// (16) StatusMsg: Exchange status msg.
 	// 
-	// @HACK: We just resend the same status that we got from remote peer.
-	_, data, _, err = dst.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = dst.Write(p2p.StatusMsg, data)
+	err = exchangeStatus(dst)
 	if err != nil {
 		return nil, err
 	}
 
 	return p2p.NewPeer(dst), nil
+}
+
+// Modifying our status a little.
+func setStatusfields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
+	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
+	srcPub := srcPrv.PublicKey
+	
+	handshake.ID = crypto.FromECDSAPub(&srcPub)[1:]
+
+	// We won't handle snap protocol for now, leave only newest eth.
+	handshake.Caps = []Capability{{"eth", p2p.ETH}}
+
+	// This will disable the snappy compression.
+	handshake.Version = 0
+}
+
+// @HACK: We just resend the same status that we got from remote peer.
+func exchangeStatus(dst *rlpx.Conn) error {
+	_, data, _, err := dst.Read()
+	if err != nil {
+		return err
+	}
+
+	_, err = dst.Write(p2p.StatusMsg, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
