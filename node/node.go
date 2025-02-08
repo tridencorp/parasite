@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"net"
+	"parasite/key"
 	"parasite/p2p"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -49,7 +49,6 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 	}
 
 	// (0) HandshakeMsg: Perform post init handshake.
-	//
 	handshake := Handshake{}
 
 	_, data, _, err := dst.Read()
@@ -88,10 +87,9 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 
 // Modifying our status a little.
 func setStatusfields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
-	// First byte is only a prefix that indicates if the key is compressed. We can omit it.
-	srcPub := srcPrv.PublicKey
-	
-	handshake.ID = crypto.FromECDSAPub(&srcPub)[1:]
+	// ID is basically our servers public key.
+	pub := srcPrv.PublicKey
+	handshake.ID = key.PubToBytes(&pub)
 
 	// We won't handle snap protocol for now, leave only newest eth.
 	handshake.Caps = []Capability{{"eth", p2p.ETH}}

@@ -15,3 +15,10 @@ func FromHex(hex string) (*ecdsa.PrivateKey, error) {
 func Private() (*ecdsa.PrivateKey, error) {
 	return crypto.GenerateKey()
 }
+
+// Convert ecdsa.PubliceKey to bytes.
+func PubToBytes(pub *ecdsa.PublicKey) []byte {
+	// First byte is only a prefix that indicates if the key is compressed. 
+	// We can remove it.
+	return crypto.FromECDSAPub(pub)[1:]
+}
