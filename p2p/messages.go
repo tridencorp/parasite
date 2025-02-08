@@ -4,6 +4,7 @@ import (
 	"math/rand/v2"
 	"parasite/block"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -24,13 +25,19 @@ const (
 
 	// Extended protocol msg codes: 0x10...0x1C (16-28)
 	StatusMsg                     = 0x10
-	NewBlockHashesMsg             = 0x11 // Not supported anymore
+
+	// Not supported anymore
+	NewBlockHashesMsg             = 0x11
+
 	TransactionsMsg               = 0x12
 	GetBlockHeadersMsg            = 0x13
 	BlockHeadersMsg               = 0x14
 	GetBlockBodiesMsg             = 0x15
 	BlockBodiesMsg                = 0x16
-	NewBlockMsg                   = 0x17 // Not supported anymore
+
+	// Not supported anymore
+	NewBlockMsg                   = 0x17
+
 	NewPooledTransactionHashesMsg = 0x18
 	GetPooledTransactionsMsg      = 0x19
 	PooledTransactionsMsg         = 0x1A
@@ -86,4 +93,19 @@ func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
 	}
 
 	return NewMsg(GetBlockHeadersMsg, data), nil
+}
+
+
+// Blocks
+
+// Request blocks from peer.
+func BlocksReq(headerHashes []common.Hash) (Msg, error) {
+	reqId := rand.Uint64()
+
+	data, err := rlp.EncodeToBytes([]any{reqId, headerHashes})
+	if err != nil {
+		return Msg{}, nil
+	}
+
+	return NewMsg(GetBlockBodiesMsg, data), nil
 }

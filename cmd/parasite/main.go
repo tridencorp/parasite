@@ -106,7 +106,7 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
 
       // Request block
       log.Info("Requesting blocks")
-      _, err = peer.GetBlocks([]common.Hash{hh})
+      _, err = p2p.BlocksReq([]common.Hash{hh})
       if err != nil {
         fmt.Println(err)
       }

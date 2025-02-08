@@ -8,7 +8,7 @@ import (
 
 // Decode block headers that we got from peer.
 func HandleBlockHeaders(msg Msg) ([]*block.BlockHeader, error) {
-	headers := new(BlockHeaders)
+	headers := new(blockHeadersRes)
 
 	err := rlp.DecodeBytes(msg.Data, headers)
 	if err != nil {
