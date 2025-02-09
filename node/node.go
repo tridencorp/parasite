@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"net"
 	"parasite/key"
@@ -29,11 +28,25 @@ type Handshake struct {
 
 // Connect to given node, perform handshake and exchange status msg.
 func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
-	// --------------------------------
-	// Connection and initial handshake
-	// --------------------------------
+	conn, err := initialHandshake(enode, srcPrv)
+	if err != nil {
+		return nil, err
+	}
 
-	// Get node's pub key and address.
+	err = handleHandshakeMessage(conn, srcPrv.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	err = exchangeStatus(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return p2p.NewPeer(conn), nil
+}
+
+func initialHandshake(enode string, prv *ecdsa.PrivateKey) (*rlpx.Conn, error)  {
 	dstPub, address, err := ParseEnode(enode)
 	if err != nil {
 		return nil, err
@@ -47,64 +60,45 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 
 	// Perform initial handshake.
 	dst := rlpx.NewConn(conn, dstPub)
-	_, err = dst.Handshake(srcPrv)
+	_, err = dst.Handshake(prv)
 	if err != nil {
 		return nil, err
 	}
 
-	// ----------------------------------------------
-	// (0) HandshakeMsg: Perform post init handshake.
-	// ----------------------------------------------
+	return dst, nil
+}
 
+func handleHandshakeMessage(conn *rlpx.Conn, pub ecdsa.PublicKey) error {
 	handshake := Handshake{}
 
-	_, data, _, err := dst.Read()
+	_, data, _, err := conn.Read()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Decode remote handshake message.
 	err = rlp.DecodeBytes(data, &handshake)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	setHandshakeFields(&handshake, *srcPrv)
-
-	buf := bytes.Buffer{}
-	err = rlp.Encode(&buf, handshake)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = dst.Write(p2p.HandshakeMsg, buf.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	
-	// ------------------------------------
-	// (16) StatusMsg: Exchange status msg.
-	// ------------------------------------
-
-	err = exchangeStatus(dst)
-	if err != nil {
-		return nil, err
-	}
-
-	return p2p.NewPeer(dst), nil
-}
-
-// Modifying our handshake.
-func setHandshakeFields(handshake *Handshake, srcPrv ecdsa.PrivateKey) {
 	// ID is basically our servers public key.
-	pub := srcPrv.PublicKey
 	handshake.ID = key.PubToBytes(&pub)
-
-	// We support only eth protocol for now.
-	handshake.Caps = []Cap{{"eth", p2p.ETH}}
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
+
+	buf, err := rlp.EncodeToBytes(handshake)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Write(p2p.HandshakeMsg, buf)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // @HACK: We just resend the same status that we got from remote peer.

@@ -79,7 +79,7 @@ type blockHeadersRes struct {
 // Create BlockHeaders request message.
 func BlockHeadersReq(number, amount, skip uint64, reverse bool) (Msg, error) {
 	reqId := rand.Uint64()
-	
+
 	req := blockHeadersReq{
 		Number:  number,
 		Amount:  amount,

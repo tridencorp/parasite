@@ -16,7 +16,6 @@ func main() {
   // Display parasite logo
   displayLogo("./logo.txt")
 
-
   // Load nodes
   var nodes []string
   err := config.Load("./eth_nodes.json", "nodes", &nodes)
@@ -61,7 +60,7 @@ func main() {
   peer.Send(msg)
 
   for msg := range handler {
-    fmt.Println("!!! got headers from handler !!!")
+    fmt.Println("!!! got headers via handler !!!")
     fmt.Printf("msg: %v", msg)
   }
 
@@ -146,7 +145,7 @@ func displayLogo(file string) error {
   if err != nil {
     return err
   }
-  
+
   fmt.Printf(log.Magenta + "%s" + log.Reset, data)
   return nil
 }

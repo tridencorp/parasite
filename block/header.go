@@ -38,11 +38,11 @@ type BlockHeader struct {
 }
 
 // Compute block header hash.
-func (bh *BlockHeader) Hash() (common.Hash, error) {
-	bytes, err := rlp.EncodeToBytes(bh)
+func (header *BlockHeader) Hash() (common.Hash, error) {
+	b, err := rlp.EncodeToBytes(header)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
-	return crypto.Keccak256Hash(bytes), nil
+	return crypto.Keccak256Hash(b), nil
 }
