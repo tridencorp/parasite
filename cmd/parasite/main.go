@@ -123,7 +123,7 @@ func Dispatch(msg p2p.Msg, peer *p2p.Peer, handler chan p2p.Msg, failure chan p2
   if msg.Code == p2p.NewPooledTransactionHashesMsg { 
     log.Info("Request: %d : NewPooledTransactions", msg.Code)
 
-    pooledTx, err := p2p.PooledTransactionsReq(msg)
+    pooledTx, err := p2p.PooledTransactions(msg)
     if err != nil {
       fmt.Println(err)
     }
@@ -132,9 +132,20 @@ func Dispatch(msg p2p.Msg, peer *p2p.Peer, handler chan p2p.Msg, failure chan p2
     return
   }
 
+  if msg.Code == p2p.TransactionsMsg {
+    log.Info("Request: %d : p2p.TransactionsMsg", msg.Code)
+
+    txs, err := p2p.NewTransactions(msg)
+    if err != nil {
+      fmt.Println(err)
+    }
+
+    fmt.Printf("%v", txs)
+    return
+  }
+
   // @TODO: Needs to be implemented
   if msg.Code == p2p.BlockBodiesMsg    { log.Error("Implement %d", p2p.BlockBodiesMsg)    ;return }
-  if msg.Code == p2p.TransactionsMsg   { log.Error("Implement %d", p2p.TransactionsMsg)   ;return }
   if msg.Code == p2p.GetBlockBodiesMsg { log.Error("Implement %d", p2p.GetBlockBodiesMsg) ;return }
   if msg.Code == p2p.GetReceiptsMsg    { log.Error("Implement %d", p2p.GetReceiptsMsg)    ;return }
   if msg.Code == p2p.ReceiptsMsg       { log.Error("Implement %d", p2p.ReceiptsMsg)       ;return }

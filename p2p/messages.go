@@ -5,6 +5,7 @@ import (
 	"parasite/block"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -138,8 +139,8 @@ type pooledTransactions struct {
 	Hashes []common.Hash
 }
 
-// Parse pooled transaction msg that we received from peer.
-func PooledTransactionsReq(msg Msg) (*pooledTransactions, error) {
+// Parse pooled transactions message that we received from peer.
+func PooledTransactions(msg Msg) (*pooledTransactions, error) {
 	pooledTxs := new(pooledTransactions)
 
 	err := rlp.DecodeBytes(msg.Data, pooledTxs)
@@ -150,8 +151,17 @@ func PooledTransactionsReq(msg Msg) (*pooledTransactions, error) {
 	return pooledTxs, nil
 }
 
+// Parse the transaction message that was sent to us during the broadcast.
+func NewTransactions(msg Msg) (*[]types.Transaction, error) {
+	txs := new([]types.Transaction)
 
+	err := rlp.DecodeBytes(msg.Data, txs)
+	if err != nil {
+		return nil, nil
+	}
 
+	return txs, err
+}
 
 
 
