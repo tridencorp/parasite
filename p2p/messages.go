@@ -65,7 +65,7 @@ var DiscReasons = []string{
 // Block headers
 
 type blockHeadersReq struct {
-	Start   uint64
+	Number  uint64
 	Amount  uint64
 	Skip    uint64
 	Reverse bool
@@ -77,11 +77,11 @@ type blockHeadersRes struct {
 }
 
 // Create BlockHeaders request message.
-func BlockHeadersReq(start, amount, skip uint64, reverse bool) (Msg, error) {
+func BlockHeadersReq(number, amount, skip uint64, reverse bool) (Msg, error) {
 	reqId := rand.Uint64()
 	
 	req := blockHeadersReq{
-		Start:   start,
+		Number:  number,
 		Amount:  amount,
 		Skip:    skip,
 		Reverse: false,

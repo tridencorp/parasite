@@ -1,8 +1,8 @@
 package main
 
 import (
-	"crypto/ecdsa"
 	"fmt"
+	"os"
 	"parasite/config"
 	"parasite/key"
 	"parasite/log"
@@ -13,6 +13,10 @@ import (
 )
 
 func main() {
+  // Display parasite logo
+  displayLogo("./logo.txt")
+
+
   // Load nodes
   var nodes []string
   err := config.Load("./eth_nodes.json", "nodes", &nodes)
@@ -41,7 +45,7 @@ func main() {
     log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
   }
 
-  go StartPeerReader(peer, srcPrv)
+  go StartPeerReader(peer)
   go peer.StartWriter()
 
   // Lets ask for block headers
@@ -67,7 +71,7 @@ func main() {
 }
 
 // Start peer reader. There should be only one reader per peer.
-func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
+func StartPeerReader(peer *p2p.Peer) {
   for {
     msg, err := peer.Read()
     if err != nil {
@@ -119,15 +123,30 @@ func StartPeerReader(peer *p2p.Peer, srcPrv *ecdsa.PrivateKey) {
       continue
     }
 
-    // @TODO: Need to be implemented
+    // @TODO: Needs to be implemented
+    if msg.Code == p2p.NewPooledTransactionHashesMsg { 
+      log.Error("Implement %d", p2p.NewPooledTransactionHashesMsg) ;continue
+    }
+
     if msg.Code == p2p.BlockBodiesMsg    { log.Error("Implement %d", p2p.BlockBodiesMsg)    ;continue}
     if msg.Code == p2p.TransactionsMsg   { log.Error("Implement %d", p2p.TransactionsMsg)   ;continue}
     if msg.Code == p2p.GetBlockBodiesMsg { log.Error("Implement %d", p2p.GetBlockBodiesMsg) ;continue}
     if msg.Code == p2p.GetReceiptsMsg    { log.Error("Implement %d", p2p.GetReceiptsMsg)    ;continue}
     if msg.Code == p2p.ReceiptsMsg       { log.Error("Implement %d", p2p.ReceiptsMsg)       ;continue}
+    
 
     // If we are here then we have unsupported message. 
     // Just print it for now.
     log.Error("Unknown msg code: %d\n", msg.Code)
   }
+}
+
+func displayLogo(file string) error {
+  data, err := os.ReadFile(file)
+  if err != nil {
+    return err
+  }
+  
+  fmt.Printf(log.Magenta + "%s" + log.Reset, data)
+  return nil
 }

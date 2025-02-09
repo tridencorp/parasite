@@ -29,6 +29,10 @@ type Handshake struct {
 
 // Connect to given node, perform handshake and exchange status msg.
 func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
+	// --------------------------------
+	// Connection and initial handshake
+	// --------------------------------
+
 	// Get node's pub key and address.
 	dstPub, address, err := ParseEnode(enode)
 	if err != nil {
@@ -48,7 +52,10 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 
+	// ----------------------------------------------
 	// (0) HandshakeMsg: Perform post init handshake.
+	// ----------------------------------------------
+
 	handshake := Handshake{}
 
 	_, data, _, err := dst.Read()
@@ -75,8 +82,10 @@ func Connect(enode string, srcPrv *ecdsa.PrivateKey) (*p2p.Peer, error) {
 		return nil, err
 	}
 	
+	// ------------------------------------
 	// (16) StatusMsg: Exchange status msg.
-	// 
+	// ------------------------------------
+
 	err = exchangeStatus(dst)
 	if err != nil {
 		return nil, err

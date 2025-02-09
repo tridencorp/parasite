@@ -31,22 +31,22 @@ type Config struct {
 
 // Standard colors.
 const (
-	red     = "\033[31m"
-	green   = "\033[32m"
-	yellow  = "\033[33m"
-	black   = "\033[30m"
-	blue    = "\033[34m"
-	magenta = "\033[35m"
-	cyan    = "\033[36m"
-	white   = "\033[37m"
-	reset   = "\033[0m"
+	Red     = "\033[31m"
+	Green   = "\033[32m"
+	Yellow  = "\033[33m"
+	Black   = "\033[30m"
+	Blue    = "\033[34m"
+	Magenta = "\033[35m"
+	Cyan    = "\033[36m"
+	White   = "\033[37m"
+	Reset   = "\033[0m"
 )
 
 const (
-	ErrorPrefix = red     + "ERROR"
-	DebugPrefix = magenta + "DEBUG"
-	InfoPrefix  = green   + "INFO"
-	TracePrefix = blue    + "TRACE"
+	ErrorPrefix = Red     + "ERROR"
+	DebugPrefix = Magenta + "DEBUG"
+	InfoPrefix  = Green   + "INFO"
+	TracePrefix = Blue    + "TRACE"
 )
 
 // Quick implementation of io.StringWriter for stdout.
@@ -127,7 +127,7 @@ func Trace(format string, args ...any) {
 // Format log and add default prefix to it.
 func formatLog(prefix, format string, args ...any) string {
 	log := fmt.Sprintf(format, args...)
-	return (defaultPrefix(prefix) + log + reset)
+	return (defaultPrefix(prefix) + log + Reset)
 }
 
 // Return default prefix with caller file name and line number. 

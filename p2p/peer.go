@@ -47,13 +47,15 @@ func (p *Peer) Send(msg Msg) {
 	p.messages <- msg
 }
 
-// Start peer writer goroutine. There should be only one writer per peer.
+// Start peer writer goroutine. 
+// There should be only one writer per peer.
 func (p *Peer) StartWriter() {
-	// We are iterating over each message and writing it sequentially 
-	// to the TCP socket.
+	// We are iterating over each message 
+	// and writing it sequentially to socket.
 	for msg := range p.messages {
 		_, err := p.conn.Write(msg.Code, msg.Data)
 
+		// @TODO: Figure out how to handle errors.
 		if err != nil {
 			log.Error("%s", err)
 		}
