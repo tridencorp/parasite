@@ -61,3 +61,19 @@ func (p *Peer) StartWriter() {
 		}
 	}
 }
+
+// Start the peer reader, which will read messages 
+// sequentially and send them to dispatcher.
+type Dispatch func(msg Msg, peer *Peer, handler chan Msg, failure chan Msg)
+
+func (p *Peer) StartReader(handler chan Msg, failure chan Msg, dispatch Dispatch) {
+	for {
+		msg, err := p.Read()
+		if err != nil {
+			log.Error("%v", err)
+			break
+		}
+
+		dispatch(msg, p, handler, failure)
+	}
+}

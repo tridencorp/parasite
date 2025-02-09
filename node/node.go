@@ -2,6 +2,7 @@ package node
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"net"
 	"parasite/key"
 	"parasite/p2p"
@@ -73,13 +74,13 @@ func handleHandshakeMessage(conn *rlpx.Conn, pub ecdsa.PublicKey) error {
 
 	_, data, _, err := conn.Read()
 	if err != nil {
-		return err
+		return fmt.Errorf("Handshake | error while reading from peer")
 	}
 
 	// Decode remote handshake message.
 	err = rlp.DecodeBytes(data, &handshake)
 	if err != nil {
-		return err
+		return fmt.Errorf("Handshake | cannot decode bytes from peer")
 	}
 
 	// ID is basically our servers public key.
@@ -87,7 +88,7 @@ func handleHandshakeMessage(conn *rlpx.Conn, pub ecdsa.PublicKey) error {
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
-	
+
 	buf, err := rlp.EncodeToBytes(handshake)
 	if err != nil {
 		return err

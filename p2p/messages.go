@@ -123,6 +123,7 @@ func BlockHeadersRes(msg Msg) (*blockHeadersRes, error) {
 func BlocksReq(headerHashes []common.Hash) (Msg, error) {
 	reqId := rand.Uint64()
 
+	// TODO: replace []any with struct.
 	data, err := rlp.EncodeToBytes([]any{reqId, headerHashes})
 	if err != nil {
 		return Msg{}, nil
@@ -130,4 +131,3 @@ func BlocksReq(headerHashes []common.Hash) (Msg, error) {
 
 	return NewMsg(GetBlockBodiesMsg, data), nil
 }
-
