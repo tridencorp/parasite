@@ -36,30 +36,31 @@ func main() {
     fmt.Print(err)
   }
 
-  // node.ConnectNodes(nodes, srcPrv)
-
+  
   // !!! TESTING PLAYGROUND !!!
   // 
-  log.Info("Connecting to peer ...")
-  peer, err := node.Connect(nodes[0], srcPrv)
-  if err != nil {
-    log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
-  }
-
-  msg, err := p2p.BlockHeadersReq(14678570, 1, 0, false)
-  if err != nil {
-    log.Error("%s", err)
-  }
-
+  // log.Info("Connecting to peer ...")
+  // peer, err := node.Connect(nodes[0], srcPrv)
+  // if err != nil {
+  //   log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
+  // }
+  
+  // msg, err := p2p.BlockHeadersReq(14678570, 1, 0, false)
+  // if err != nil {
+  //   log.Error("%s", err)
+  // }
+  
   handler := make(chan p2p.Msg) 
-  msg.Handler = handler
-
-  go peer.StartWriter()
-  go peer.StartReader(handler, handler, Dispatch)
+  // msg.Handler = handler
+  
+  // go peer.StartWriter()
+  // go peer.StartReader(handler, handler, Dispatch)
+  
+  node.ConnectNodes(nodes, srcPrv, Dispatch, handler, handler)
 
   // Lets ask for block headers
-  log.Info("Block Headers request")
-  peer.Send(msg)
+  // log.Info("Block Headers request")
+  // peer.Send(msg)
 
   for msg := range handler {
     fmt.Println("!!! got headers via handler !!!")
@@ -119,12 +120,19 @@ func Dispatch(msg p2p.Msg, peer *p2p.Peer, handler chan p2p.Msg, failure chan p2
     return
   }
 
-  // @TODO: Needs to be implemented
   if msg.Code == p2p.NewPooledTransactionHashesMsg { 
-    log.Error("Implement %d", p2p.NewPooledTransactionHashesMsg)
+    log.Info("Request: %d : NewPooledTransactions", msg.Code)
+
+    pooledTx, err := p2p.PooledTransactionsReq(msg)
+    if err != nil {
+      fmt.Println(err)
+    }
+    
+    fmt.Printf("%v", pooledTx)
     return
   }
 
+  // @TODO: Needs to be implemented
   if msg.Code == p2p.BlockBodiesMsg    { log.Error("Implement %d", p2p.BlockBodiesMsg)    ;return }
   if msg.Code == p2p.TransactionsMsg   { log.Error("Implement %d", p2p.TransactionsMsg)   ;return }
   if msg.Code == p2p.GetBlockBodiesMsg { log.Error("Implement %d", p2p.GetBlockBodiesMsg) ;return }

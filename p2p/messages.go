@@ -131,3 +131,30 @@ func BlocksReq(headerHashes []common.Hash) (Msg, error) {
 
 	return NewMsg(GetBlockBodiesMsg, data), nil
 }
+
+type pooledTransactions struct {
+	Types  []byte
+	Sizes  []uint32
+	Hashes []common.Hash
+}
+
+// Parse pooled transaction msg that we received from peer.
+func PooledTransactionsReq(msg Msg) (*pooledTransactions, error) {
+	pooledTxs := new(pooledTransactions)
+
+	err := rlp.DecodeBytes(msg.Data, pooledTxs)
+	if err != nil {
+		return nil, nil
+	}
+
+	return pooledTxs, nil
+}
+
+
+
+
+
+
+
+
+
