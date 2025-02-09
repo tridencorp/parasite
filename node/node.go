@@ -6,6 +6,7 @@ import (
 	"net"
 	"parasite/key"
 	"parasite/p2p"
+	"time"
 
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -54,7 +55,8 @@ func initialHandshake(enode string, prv *ecdsa.PrivateKey) (*rlpx.Conn, error)  
 	}
 
 	// Connect to node.
-	conn, err := net.Dial("tcp", address)
+	timeout := 1 * time.Second
+	conn, err := net.DialTimeout("tcp", address, timeout)
 	if err != nil {
 		return nil, err
 	}
