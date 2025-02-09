@@ -65,10 +65,13 @@ var DiscReasons = []string{
 // Block headers
 
 type blockHeadersReq struct {
-	Number  uint64
-	Amount  uint64
-	Skip    uint64
-	Reverse bool
+	ReqId 	uint64
+	Request struct {
+		Number  uint64
+		Amount  uint64
+		Skip    uint64
+		Reverse bool
+	}
 }
 
 type blockHeadersRes struct {
@@ -78,22 +81,28 @@ type blockHeadersRes struct {
 
 // Create BlockHeaders request message.
 func BlockHeadersReq(number, amount, skip uint64, reverse bool) (Msg, error) {
-	reqId := rand.Uint64()
-
 	req := blockHeadersReq{
-		Number:  number,
-		Amount:  amount,
-		Skip:    skip,
-		Reverse: false,
+		ReqId: rand.Uint64(),
+		Request: struct {
+			Number  uint64
+			Amount  uint64
+			Skip    uint64
+			Reverse bool
+		}{
+			Number:  number,
+			Amount:  amount,
+			Skip:    skip,
+			Reverse: false,
+		},
 	}
 
-	data, err := rlp.EncodeToBytes([]any{reqId, req})
+	data, err := rlp.EncodeToBytes(req)
 	if err != nil {
 		return Msg{}, err
 	}
 
 	msg := NewMsg(GetBlockHeadersMsg, data)
-	msg.ReqId = reqId
+	msg.ReqId = req.ReqId
 
 	return msg, nil
 }

@@ -10,17 +10,17 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type Cap struct {
-	Name    string
-	Version uint
-}
-
 type Handshake struct {
-	Version    uint64
-	Name       string
-	Caps       []Cap
+	Version uint64
+	Name string
+
+	Caps []struct{ 
+		Name string
+		Version uint
+	}
+
 	ListenPort uint64
-	ID         []byte
+	ID []byte
 
 	// Currently unused, but required for compatibility with ETH.
 	Rest []rlp.RawValue `rlp:"tail"`
@@ -87,7 +87,7 @@ func handleHandshakeMessage(conn *rlpx.Conn, pub ecdsa.PublicKey) error {
 
 	// This will disable the snappy compression.
 	handshake.Version = 0
-
+	
 	buf, err := rlp.EncodeToBytes(handshake)
 	if err != nil {
 		return err
