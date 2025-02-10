@@ -4,10 +4,11 @@ import (
 	"crypto/ecdsa"
 	"parasite/log"
 	"parasite/p2p"
+	"parasite/server"
 )
 
 // Establish connections with nodes.
-func ConnectNodes(nodes []string, prv *ecdsa.PrivateKey, dispatch p2p.Dispatch, handler chan p2p.Msg, failure chan p2p.Msg) {
+func ConnectNodes(nodes []string, prv *ecdsa.PrivateKey, handler chan p2p.Msg, failure chan p2p.Msg) {
 	for _, n := range nodes {
 		peer, err := Connect(n, prv)
 		if err != nil {
@@ -15,9 +16,10 @@ func ConnectNodes(nodes []string, prv *ecdsa.PrivateKey, dispatch p2p.Dispatch, 
 			continue
 		}
 
+		dispatcher := server.NewDispatcher(peer, handler, handler)
 		log.Info("Peer Connected: %v", peer)
 
 		go peer.StartWriter()
-		go peer.StartReader(handler, handler, dispatch)
+		go peer.StartReader(dispatcher)
 	}
 }

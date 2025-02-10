@@ -8,8 +8,6 @@ import (
 	"parasite/log"
 	"parasite/node"
 	"parasite/p2p"
-
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func main() {
@@ -54,9 +52,9 @@ func main() {
   // msg.Handler = handler
   
   // go peer.StartWriter()
-  // go peer.StartReader(handler, handler, Dispatch)
-  
-  node.ConnectNodes(nodes, srcPrv, Dispatch, handler, handler)
+  // go peer.StartReader(handler, handler, Dispatch)/
+
+  node.ConnectNodes(nodes, srcPrv, handler, handler)
 
   // Lets ask for block headers
   // log.Info("Block Headers request")
@@ -70,89 +68,6 @@ func main() {
   // Let's wait indefinitely for now.
   dummy := make(chan bool)
   <- dummy 
-}
-
-// Dispatch incomming messages. Most of them will go to
-// handler, failures can be redirect to different place, 
-// like PeerHub.
-func Dispatch(msg p2p.Msg, peer *p2p.Peer, handler chan p2p.Msg, failure chan p2p.Msg) {
-  // (2) PingMsg
-  if msg.Code == p2p.PingMsg {
-    log.Info("!!! Got Ping !!!")
-    peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
-    return
-  }
-
-  // (19) GetBlockHeadersMsg
-  if msg.Code == p2p.GetBlockHeadersMsg {
-    log.Info("%d", msg.Code)
-    log.Info("%v", msg.Data)    
-    return
-  }
-
-  // (20) BlockHeadersMsg
-  if msg.Code == p2p.BlockHeadersMsg {
-    log.Info("!!! Got headers !!!")
-
-    res, err := p2p.BlockHeadersRes(msg)
-    if err != nil {
-      log.Error("%v", err)
-    }
-
-    // Send msg with requsted headers to our handler.
-    reqMsg, exists := peer.RequestedMsgs[res.ReqId]
-    if exists {
-      reqMsg.Handler <- msg
-    }
-
-    return
-  }
-
-  // (1) DiscMsg
-  if msg.Code == p2p.DiscMsg {
-    log.Error("!!! DISCONECT FROM NODE !!!")
-
-    type DiscReason uint8
-    var disc []DiscReason
-
-    rlp.DecodeBytes(msg.Data, &disc)
-    log.Error("Disconnect from peer: %s", p2p.DiscReasons[disc[0]])
-    return
-  }
-
-  if msg.Code == p2p.NewPooledTransactionHashesMsg { 
-    log.Info("Request: %d : NewPooledTransactions", msg.Code)
-
-    pooledTx, err := p2p.PooledTransactions(msg)
-    if err != nil {
-      fmt.Println(err)
-    }
-    
-    fmt.Printf("%v", pooledTx)
-    return
-  }
-
-  if msg.Code == p2p.TransactionsMsg {
-    log.Info("Request: %d : p2p.TransactionsMsg", msg.Code)
-
-    txs, err := p2p.NewTransactions(msg)
-    if err != nil {
-      fmt.Println(err)
-    }
-
-    fmt.Printf("%v", txs)
-    return
-  }
-
-  // @TODO: Needs to be implemented
-  if msg.Code == p2p.BlockBodiesMsg    { log.Error("Implement %d", p2p.BlockBodiesMsg)    ;return }
-  if msg.Code == p2p.GetBlockBodiesMsg { log.Error("Implement %d", p2p.GetBlockBodiesMsg) ;return }
-  if msg.Code == p2p.GetReceiptsMsg    { log.Error("Implement %d", p2p.GetReceiptsMsg)    ;return }
-  if msg.Code == p2p.ReceiptsMsg       { log.Error("Implement %d", p2p.ReceiptsMsg)       ;return }
-
-  // If we are here then we have unsupported message. 
-  // Just print it for now.
-  log.Error("Unknown msg code: %d\n", msg.Code)
 }
 
 func displayLogo(file string) error {
