@@ -62,11 +62,14 @@ func (p *Peer) StartWriter() {
 	}
 }
 
+// Dispatcher interface. It should dispatch messages to proper handlers.
+type Dispatcher interface {
+	Dispatch(msg *Msg)
+}
+
 // Start the peer reader, which will read messages 
 // sequentially and send them to dispatcher.
-type Dispatch func(msg Msg, peer *Peer, handler chan Msg, failure chan Msg)
-
-func (p *Peer) StartReader(handler chan Msg, failure chan Msg, dispatch Dispatch) {
+func (p *Peer) StartReader(dispatcher Dispatcher) { 
 	for {
 		msg, err := p.Read()
 		if err != nil {
@@ -74,6 +77,6 @@ func (p *Peer) StartReader(handler chan Msg, failure chan Msg, dispatch Dispatch
 			break
 		}
 
-		dispatch(msg, p, handler, failure)
+		dispatcher.Dispatch(&msg)
 	}
 }
