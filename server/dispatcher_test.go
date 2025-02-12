@@ -6,6 +6,9 @@ import (
 )
 
 func TestMessageDispatch(t *testing.T) {
+	// Messages should be dispatched to correct handlers.
+	// Handler should receive the same message that the dispatcher received.
+
 	msg1 := p2p.NewMsg(p2p.BlockHeadersMsg,    []byte("BlockHeadersMsg"))
 	msg2 := p2p.NewMsg(p2p.DiscMsg,            []byte("DiscMsg"))     
 	msg3 := p2p.NewMsg(p2p.TransactionsMsg,    []byte("TransactionsMsg"))

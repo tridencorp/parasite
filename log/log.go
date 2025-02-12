@@ -12,6 +12,8 @@ import (
 // This is only basic skeleton. We are working on it, it's ongoing proccess :D
 // This logger will be in a separate repository and will be used across all our services.
 
+// TODO: Throw panic if logger was used but goroutine wasn't started. It will hange !!!
+
 var file *os.File
 var config Config
 

@@ -23,10 +23,10 @@ func NewDispatcher(peer *p2p.Peer, handler chan p2p.Msg, failure chan p2p.Msg) *
 // for sending errors.
 // Dispatcher is called by peer each time new message arrives.
 func (dispatcher *Dispatcher) Dispatch(msg p2p.Msg) { 
-  if msg.Code == p2p.PingMsg {
-    dispatcher.peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
-    return
-  }
+	if msg.Code == p2p.PingMsg {
+		dispatcher.peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
+		return
+	}
 
 	if msg.Code == p2p.BlockHeadersMsg {
 		dispatcher.handler <- msg
@@ -60,20 +60,20 @@ func (dispatcher *Dispatcher) Dispatch(msg p2p.Msg) {
 
 	if msg.Code == p2p.GetBlockHeadersMsg {
 		dispatcher.handler <- msg
-    return
-  }
+		return
+	}
 
-  if msg.Code == p2p.GetBlockBodiesMsg {
+	if msg.Code == p2p.GetBlockBodiesMsg {
 		dispatcher.handler <- msg
-    return
-  }
-  
+		return
+	}
+
 	if msg.Code == p2p.GetReceiptsMsg { 
 		dispatcher.handler <- msg
 		return 
 	}
 
-  // If we are here then we have unsupported message. 
-  // Just print it for now.
-  log.Error("Unknown msg code: %d\n", msg.Code)
+	// If we are here then we have unsupported message. 
+	// Just print it for now.
+	log.Error("Unknown msg code: %d\n", msg.Code)
 }
