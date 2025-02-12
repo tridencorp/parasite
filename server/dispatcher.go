@@ -7,24 +7,26 @@ import (
 
 // Dispatching received messages to designated handlers.
 type Dispatcher struct {
-	peer *p2p.Peer
-
 	Handler chan p2p.Msg
 	Failure chan p2p.Msg
 }
 
 // Create new Dispatcher.
-func NewDispatcher(peer *p2p.Peer, handler, failure chan p2p.Msg) *Dispatcher {
-	return &Dispatcher{peer, handler, failure}
+func NewDispatcher() *Dispatcher {
+	return &Dispatcher{make(chan p2p.Msg), make(chan p2p.Msg)}
+}
+
+func (dispatcher *Dispatcher) Channels() (chan p2p.Msg, chan p2p.Msg){
+	return dispatcher.Handler, dispatcher.Failure
 }
 
 // Main dispatcher responsible for dispatching all incomming messages.
 // It uses 2 channels: one for normal message handling and another one 
 // for sending errors.
 // Dispatcher is called by peer each time new message arrives.
-func (dispatcher *Dispatcher) Dispatch(msg p2p.Msg) { 
+func (dispatcher *Dispatcher) Dispatch(peer *p2p.Peer, msg p2p.Msg) { 
 	if msg.Code == p2p.PingMsg {
-		dispatcher.peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
+		peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
 		return
 	}
 

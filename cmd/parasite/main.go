@@ -35,19 +35,16 @@ func main() {
   }
 
 	// !!! TESTING PLAYGROUND !!!
-	handler := make(chan p2p.Msg) 
-	failure := make(chan p2p.Msg, 10) 
+	dispatcher := server.NewDispatcher()
+	peerHub    := p2p.NewPeerHub(nodes, dispatcher, srcPrv)
 
-	dispatcher := server.NewDispatcher(nil, handler, failure)
-
-	peerHub := p2p.NewPeerHub(nodes, dispatcher, failure, srcPrv)
 	peerHub.ConnectAll()
 	go peerHub.Start()
 
-  for _ = range handler {
-    fmt.Println("!!! got headers via handler !!!")
-    // fmt.Printf("msg: %v", msg)
-  }
+  // for _ = range handler {
+  //   fmt.Println("!!! got headers via handler !!!")
+  //   // fmt.Printf("msg: %v", msg)
+  // }
 
   // Let's wait indefinitely for now.
   dummy := make(chan bool)
