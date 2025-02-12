@@ -64,7 +64,7 @@ func (p *Peer) StartWriter() {
 
 // Dispatcher interface. It should dispatch messages to proper handlers.
 type Dispatcher interface {
-	Dispatch(msg *Msg)
+	Dispatch(msg Msg)
 }
 
 // Start the peer reader, which will read messages 
@@ -77,6 +77,6 @@ func (p *Peer) StartReader(dispatcher Dispatcher) {
 			break
 		}
 
-		dispatcher.Dispatch(&msg)
+		dispatcher.Dispatch(msg)
 	}
 }

@@ -34,17 +34,19 @@ func main() {
     fmt.Print(err)
   }
 
-  
-  // !!! TESTING PLAYGROUND !!!
-  handler := make(chan p2p.Msg) 
-	dispatcher := server.NewDispatcher(nil, handler, handler)
+	// !!! TESTING PLAYGROUND !!!
+	handler := make(chan p2p.Msg) 
+	failure := make(chan p2p.Msg, 10) 
 
-	peerHub := p2p.NewPeerHub(nodes, dispatcher, srcPrv)
+	dispatcher := server.NewDispatcher(nil, handler, failure)
+
+	peerHub := p2p.NewPeerHub(nodes, dispatcher, failure, srcPrv)
 	peerHub.ConnectAll()
+	go peerHub.Start()
 
-  for msg := range handler {
+  for _ = range handler {
     fmt.Println("!!! got headers via handler !!!")
-    fmt.Printf("msg: %v", msg)
+    // fmt.Printf("msg: %v", msg)
   }
 
   // Let's wait indefinitely for now.
