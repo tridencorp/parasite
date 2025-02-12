@@ -6,8 +6,8 @@ import (
 	"parasite/config"
 	"parasite/key"
 	"parasite/log"
-	"parasite/node"
 	"parasite/p2p"
+	"parasite/server"
 )
 
 func main() {
@@ -36,29 +36,11 @@ func main() {
 
   
   // !!! TESTING PLAYGROUND !!!
-  // 
-  // log.Info("Connecting to peer ...")
-  // peer, err := node.Connect(nodes[0], srcPrv)
-  // if err != nil {
-  //   log.Error("Cannot connect to peer:\n%s. \nError: %s\n", nodes[0], err)
-  // }
-  
-  // msg, err := p2p.BlockHeadersReq(14678570, 1, 0, false)
-  // if err != nil {
-  //   log.Error("%s", err)
-  // }
-  
   handler := make(chan p2p.Msg) 
-  // msg.Handler = handler
-  
-  // go peer.StartWriter()
-  // go peer.StartReader(handler, handler, Dispatch)/
+	dispatcher := server.NewDispatcher(nil, handler, handler)
 
-  node.ConnectNodes(nodes, srcPrv, handler, handler)
-
-  // Lets ask for block headers
-  // log.Info("Block Headers request")
-  // peer.Send(msg)
+	peerHub := p2p.NewPeerHub(nodes, dispatcher, srcPrv)
+	peerHub.ConnectAll()
 
   for msg := range handler {
     fmt.Println("!!! got headers via handler !!!")
