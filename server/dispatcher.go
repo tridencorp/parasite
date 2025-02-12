@@ -9,12 +9,12 @@ import (
 type Dispatcher struct {
 	peer *p2p.Peer
 
-	handler chan p2p.Msg
-	failure chan p2p.Msg
+	Handler chan p2p.Msg
+	Failure chan p2p.Msg
 }
 
 // Create new Dispatcher.
-func NewDispatcher(peer *p2p.Peer, handler chan p2p.Msg, failure chan p2p.Msg) *Dispatcher {
+func NewDispatcher(peer *p2p.Peer, handler, failure chan p2p.Msg) *Dispatcher {
 	return &Dispatcher{peer, handler, failure}
 }
 
@@ -29,47 +29,47 @@ func (dispatcher *Dispatcher) Dispatch(msg p2p.Msg) {
 	}
 
 	if msg.Code == p2p.BlockHeadersMsg {
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return
 	}
 
 	if msg.Code == p2p.DiscMsg {
-		dispatcher.handler <- msg
+		dispatcher.Failure <- msg
 		return
 	}
 
 	if msg.Code == p2p.NewPooledTransactionHashesMsg { 
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return
 	}
 
 	if msg.Code == p2p.TransactionsMsg {
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return
 	}
 
 	if msg.Code == p2p.BlockBodiesMsg { 
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return 
 	}
 
 	if msg.Code == p2p.ReceiptsMsg { 
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return 
 	}
 
 	if msg.Code == p2p.GetBlockHeadersMsg {
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return
 	}
 
 	if msg.Code == p2p.GetBlockBodiesMsg {
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return
 	}
 
 	if msg.Code == p2p.GetReceiptsMsg { 
-		dispatcher.handler <- msg
+		dispatcher.Handler <- msg
 		return 
 	}
 
