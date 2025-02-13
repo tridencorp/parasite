@@ -13,7 +13,7 @@ type Dispatcher struct {
 
 // Create new Dispatcher.
 func NewDispatcher() *Dispatcher {
-	return &Dispatcher{make(chan p2p.Msg), make(chan p2p.Msg)}
+	return &Dispatcher{make(chan p2p.Msg, 1), make(chan p2p.Msg, 10)}
 }
 
 func (dispatcher *Dispatcher) Channels() (chan p2p.Msg, chan p2p.Msg){

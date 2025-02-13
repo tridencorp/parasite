@@ -10,7 +10,6 @@ func TestMessageDispatch(t *testing.T) {
 	// Handler should receive the same message that the dispatcher received.
 
 	msg1 := p2p.NewMsg(p2p.BlockHeadersMsg,    []byte("BlockHeadersMsg"))
-	msg2 := p2p.NewMsg(p2p.DiscMsg,            []byte("DiscMsg"))     
 	msg3 := p2p.NewMsg(p2p.TransactionsMsg,    []byte("TransactionsMsg"))
 	msg4 := p2p.NewMsg(p2p.BlockBodiesMsg,     []byte("BlockBodiesMsg"))     
 	msg5 := p2p.NewMsg(p2p.ReceiptsMsg,        []byte("ReceiptsMsg"))        
@@ -25,7 +24,6 @@ func TestMessageDispatch(t *testing.T) {
 		expected p2p.Msg
 	}{
 		{ name: "BlockHeadersMsg",    message: msg1, expected: msg1},
-		{ name: "DiscMsg",            message: msg2, expected: msg2},
 		{ name: "TransactionsMsg",    message: msg3, expected: msg3},
 		{ name: "BlockBodiesMsg",     message: msg4, expected: msg4},
 		{ name: "ReceiptsMsg",        message: msg5, expected: msg5},
@@ -35,12 +33,12 @@ func TestMessageDispatch(t *testing.T) {
 		{ name: "NewPooledTransactionHashesMsg", message: msg9, expected: msg9},
 	}
 
-	handler := make(chan p2p.Msg, 1)
-	dsp := NewDispatcher(nil, handler, handler)
+	dispatcher := NewDispatcher()
+	handler, _ := dispatcher.Channels()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			dsp.Dispatch(test.message)
+			dispatcher.Dispatch(nil, test.message)
 			result := <- handler
 
 			if result.Code != test.expected.Code {
