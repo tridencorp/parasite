@@ -3,7 +3,6 @@ package rpc
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"math/rand/v2"
 	"net/http"
@@ -47,7 +46,7 @@ func (node *Node) Send(method string, params, dst any) error {
 	}
 
 	defer raw.Body.Close()
-	
+
 	body, err := io.ReadAll(raw.Body)
 	if err != nil {
 		return err
@@ -57,7 +56,7 @@ func (node *Node) Send(method string, params, dst any) error {
 	res := &Response{Result: dst}
 	err = json.Unmarshal(body, res)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	return nil
