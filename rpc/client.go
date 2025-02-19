@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -55,3 +56,18 @@ func (node *Node) GasPrice() (*big.Int, error) {
 	return price, nil
 }
 
+// eth_getCode
+// 
+// Return code at a given address.
+func (node *Node) GetCode(address string) ([]byte, error) {
+	params := []any{address, "latest"}
+	res := ""
+
+	err := node.Send("eth_getCode", params, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	bytecode, err := hex.DecodeString(res[2:])
+	return bytecode, nil
+}
