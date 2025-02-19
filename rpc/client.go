@@ -117,3 +117,18 @@ func (node *Node) GetTransactionReceipt(hash string) (*Receipt, error) {
 
 	return res, nil
 }
+
+// eth_sendRawTransaction
+// 
+// Send signed transaction (or contract) to ethereum network.
+func (node *Node) SendRawTransaction(hex string) (string, error) {
+	params := []any{hex}
+	res := ""
+
+	err := node.Send("eth_sendRawTransaction", params, res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}

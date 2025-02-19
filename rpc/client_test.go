@@ -8,6 +8,7 @@ const localAddress   = "http://127.0.0.1:8545"
 const accountAddress = "0xdb2e0aaa2786bd19236aaccd9998452f72dd2b73"
 const localBlock     = 14_000_000 
 const localTx        = "0x3dac2080b4c423029fcc9c916bc430cde441badfe736fc6d1fe9325348af80fd"
+const rawTx          = "0x3dac2080b4c423029fcc9c916bc430cde441badfe736fc6d1fe9325348af80fd"
 
 func TestBlockNumber(t *testing.T) {
 	node := NewNode(localAddress)
@@ -55,6 +56,13 @@ func TestGetTransactionByHash(t *testing.T) {
 func TestGetTransactionReceipt(t *testing.T) {
 	node := NewNode(localAddress)
 	_, err := node.GetTransactionReceipt(localTx)
+
+	if err != nil { t.Errorf("Expected no errors, got %s", err) }
+}
+
+func TestSendRawTransaction(t *testing.T) {
+	node := NewNode(localAddress)
+	_, err := node.SendRawTransaction(rawTx)
 
 	if err != nil { t.Errorf("Expected no errors, got %s", err) }
 }
