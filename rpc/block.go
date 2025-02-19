@@ -19,8 +19,8 @@ type Block struct {
 	Time        string         `json:"timestamp"`
 	Extra       string         `json:"extraData"`
 	MixDigest   common.Hash    `json:"mixHash"`
-	Nonce       string 				 `json:"nonce"`
+	Nonce       string         `json:"nonce"`
 
 	Transactions []any         `json:"transactions"`
-	Uncles 			 []any         `json:"uncles"`
+	Uncles       []any         `json:"uncles"`
 }
