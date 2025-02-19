@@ -87,3 +87,18 @@ func (node *Node) GetBlockByNumber(number uint32) (*Block, error) {
 
 	return res, nil
 }
+
+// eth_getTransactionByHash
+// 
+// Return transaction by given hash.
+func (node *Node) GetTransactionByHash(hash string) (*Transaction, error) {
+	params := []any{hash}
+	res := &Transaction{}
+
+	err := node.Send("eth_getTransactionByHash", params, res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}

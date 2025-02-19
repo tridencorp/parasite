@@ -21,6 +21,6 @@ type Block struct {
 	MixDigest   common.Hash    `json:"mixHash"`
 	Nonce       string         `json:"nonce"`
 
-	Transactions []any         `json:"transactions"`
+	Transactions []Transaction `json:"transactions"`
 	Uncles       []any         `json:"uncles"`
 }
