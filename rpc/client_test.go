@@ -17,7 +17,14 @@ func TestBlockNumber(t *testing.T) {
 
 func TestBalance(t *testing.T) {
 	node := NewNode(localAddress)
-	_, err := node.Balance(accountAddress)
+	_, err := node.GetBalance(accountAddress)
+
+	if err != nil { t.Errorf("Expected no errors, got %s", err) }
+}
+
+func TestGasPrice(t *testing.T) {
+	node := NewNode(localAddress)
+	_, err := node.GasPrice()
 
 	if err != nil { t.Errorf("Expected no errors, got %s", err) }
 }

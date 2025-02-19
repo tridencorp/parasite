@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"fmt"
+	"math/big"
 	"strconv"
 )
 
@@ -21,7 +23,7 @@ func (node *Node) BlockNumber() (int64, error) {
 // eth_getBalance
 // 
 // Return the balance of the account of given address.
-func (node *Node) Balance(address string) (int64, error) {
+func (node *Node) GetBalance(address string) (int64, error) {
 	params := []any{address, "latest"}
 	res := ""
 
@@ -31,5 +33,25 @@ func (node *Node) Balance(address string) (int64, error) {
 	}
 
 	return strconv.ParseInt(res[2:], 16, 32)
+}
+
+// eth_gasPrice
+// 
+// Return the balance of the account of given address.
+func (node *Node) GasPrice() (*big.Int, error) {
+	res := ""
+
+	err := node.Send("eth_gasPrice", nil, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	price := new(big.Int)
+	_, ok := price.SetString(res[2:], 16); 
+	if !ok {
+		return nil, fmt.Errorf("Error converting hex string to big.Int")
+	}
+
+	return price, nil
 }
 
