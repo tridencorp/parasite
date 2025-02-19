@@ -10,9 +10,9 @@ type Receipt struct {
 	From              common.Address `json:"from"`
 	To                common.Address `json:"to"`
 	CumulativeGasUsed string         `json:"cumulativeGasUsed"`
-	EffectiveGasPrice string         `json:" effectiveGasPrice"`
+	EffectiveGasPrice string         `json:"effectiveGasPrice"`
 	GasUsed           string         `json:"gasUsed"`
-	ContractAddress   common.Address `json:"contractAddress"`
+	ContractAddress   string         `json:"contractAddress"`
 	Logs              []any          `json:"logs"`
 	LogsBloom         string         `json:"logsBloom"`
 	Type              string         `json:"type"`

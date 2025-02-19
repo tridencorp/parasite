@@ -51,3 +51,10 @@ func TestGetTransactionByHash(t *testing.T) {
 
 	if err != nil { t.Errorf("Expected no errors, got %s", err) }
 }
+
+func TestGetTransactionReceipt(t *testing.T) {
+	node := NewNode(localAddress)
+	_, err := node.GetTransactionReceipt(localTx)
+
+	if err != nil { t.Errorf("Expected no errors, got %s", err) }
+}

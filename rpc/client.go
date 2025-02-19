@@ -102,3 +102,18 @@ func (node *Node) GetTransactionByHash(hash string) (*Transaction, error) {
 
 	return res, nil
 }
+
+// eth_getTransactionReceipt
+// 
+// Return receipt for given transaction hash.
+func (node *Node) GetTransactionReceipt(hash string) (*Receipt, error) {
+	params := []any{hash}
+	res := &Receipt{}
+
+	err := node.Send("eth_getTransactionReceipt", params, res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
