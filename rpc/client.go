@@ -38,7 +38,7 @@ func (node *Node) GetBalance(address string) (int64, error) {
 
 // eth_gasPrice
 // 
-// Return the balance of the account of given address.
+// Return current gas price.
 func (node *Node) GasPrice() (*big.Int, error) {
 	res := ""
 
@@ -57,7 +57,7 @@ func (node *Node) GasPrice() (*big.Int, error) {
 }
 
 // eth_getCode
-// 
+//
 // Return code at a given address.
 func (node *Node) GetCode(address string) ([]byte, error) {
 	params := []any{address, "latest"}
@@ -70,4 +70,20 @@ func (node *Node) GetCode(address string) ([]byte, error) {
 
 	bytecode, err := hex.DecodeString(res[2:])
 	return bytecode, nil
+}
+
+// eth_getBlockByNumber
+// 
+// Return block by given number.
+func (node *Node) GetBlockByNumber(number uint32) (*Block, error) {
+	hex := fmt.Sprintf("0x%x", number)
+	params := []any{hex, true}
+	res := &Block{}
+
+	err := node.Send("eth_getBlockByNumber", params, res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
 }

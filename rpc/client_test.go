@@ -6,6 +6,7 @@ import (
 
 const localAddress   = "http://127.0.0.1:8545"
 const accountAddress = "0xdb2e0aaa2786bd19236aaccd9998452f72dd2b73"
+const localBlock 		 = 14_000_000 
 
 func TestBlockNumber(t *testing.T) {
 	node := NewNode(localAddress)
@@ -32,6 +33,13 @@ func TestGasPrice(t *testing.T) {
 func TestGetCode(t *testing.T) {
 	node := NewNode(localAddress)
 	_, err := node.GetCode(accountAddress)
+
+	if err != nil { t.Errorf("Expected no errors, got %s", err) }
+}
+
+func TestGetBlockByNumber(t *testing.T) {
+	node := NewNode(localAddress)
+	_, err := node.GetBlockByNumber(localBlock)
 
 	if err != nil { t.Errorf("Expected no errors, got %s", err) }
 }
