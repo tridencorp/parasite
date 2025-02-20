@@ -23,7 +23,7 @@ func TestBlockNumber(t *testing.T) {
 
 func TestBalance(t *testing.T) {
   node := NewNode(localAddress)
-  res := ""
+  res := hexutil.Uint64(0)
   err := node.GetBalance(&res, accountAddress)
 
   if err != nil { t.Errorf("Expected no errors, got %s", err) }
@@ -31,7 +31,7 @@ func TestBalance(t *testing.T) {
 
 func TestGasPrice(t *testing.T) {
   node := NewNode(localAddress)
-  res := ""
+  res := hexutil.Uint64(0)
   err := node.GasPrice(&res)
 
   if err != nil { t.Errorf("Expected no errors, got %s", err) }
@@ -39,7 +39,7 @@ func TestGasPrice(t *testing.T) {
 
 func TestGetCode(t *testing.T) {
   node := NewNode(localAddress)
-  res := ""
+  res := hexutil.Bytes{}
   err := node.GetCode(&res, accountAddress)
 
   if err != nil { t.Errorf("Expected no errors, got %s", err) }
@@ -71,7 +71,7 @@ func TestGetTransactionReceipt(t *testing.T) {
 
 func TestSendRawTransaction(t *testing.T) {
   node := NewNode(localAddress)
-  res := ""
+  res := hexutil.Bytes{}
   err := node.SendRawTransaction(&res, rawTx)
 
   if err != nil { t.Errorf("Expected no errors, got %s", err) }
