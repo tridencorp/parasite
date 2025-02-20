@@ -32,7 +32,7 @@ func NewNode(address string) *Node {
 }
 
 // Send request to RPC node and unmarshal response into dst. 
-func (node *Node) Send(method string, params, dst any) error {
+func (node *Node) Send(method string, response, params any) error {
 	request := Request{rand.Int32(), "2.0", method, params}
 
 	data, err := json.Marshal(request)
@@ -53,7 +53,7 @@ func (node *Node) Send(method string, params, dst any) error {
 	}
 
 	// Unmarshal response back to dst.
-	res := &Response{Result: dst}
+	res := &Response{Result: response}
 	err = json.Unmarshal(body, res)
 	if err != nil {
 		return err

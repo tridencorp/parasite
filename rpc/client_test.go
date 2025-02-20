@@ -61,8 +61,10 @@ func TestGetTransactionReceipt(t *testing.T) {
 }
 
 func TestSendRawTransaction(t *testing.T) {
-	node := NewNode(localAddress)
-	_, err := node.SendRawTransaction(rawTx)
+  node := NewNode(localAddress)
 
-	if err != nil { t.Errorf("Expected no errors, got %s", err) }
+  res := ""
+  err := node.SendRawTransaction(&res, rawTx)
+
+  if err != nil { t.Errorf("Expected no errors, got %s", err) }
 }
