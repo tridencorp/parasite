@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 type Block struct {
@@ -12,14 +13,14 @@ type Block struct {
 	TxHash      common.Hash    `json:"transactionsRoot"`
 	ReceiptHash common.Hash    `json:"receiptsRoot"`
 	Bloom       string         `json:"logsBloom"`
-	Difficulty  string         `json:"difficulty"`
-	Number      string         `json:"number"`
-	GasLimit    string         `json:"gasLimit"`
-	GasUsed     string         `json:"gasUsed"`
-	Time        string         `json:"timestamp"`
-	Extra       string         `json:"extraData"`
+	Difficulty  hexutil.Big    `json:"difficulty"`
+	Number      hexutil.Big    `json:"number"`
+	GasLimit    hexutil.Uint64 `json:"gasLimit"`
+	GasUsed     hexutil.Uint64 `json:"gasUsed"`
+	Time        hexutil.Uint64 `json:"timestamp"`
+	Extra       hexutil.Bytes  `json:"extraData"`
 	MixDigest   common.Hash    `json:"mixHash"`
-	Nonce       string         `json:"nonce"`
+	Nonce       hexutil.Uint64 `json:"nonce"`
 
 	Transactions []Transaction `json:"transactions"`
 	Uncles       []any         `json:"uncles"`

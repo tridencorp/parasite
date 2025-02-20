@@ -1,20 +1,29 @@
 package rpc
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 type Transaction struct {
-  BlockHash   common.Hash    `json:"blockHash"`
-	BlockNumber string         `json:"blockNumber"`
-	Value       string         `json:"value"`
-	From        common.Address `json:"from"`
-	To          common.Address `json:"to"`
-	Gas         string         `json:"gas"`
-	GasPrice    string         `json:"gasPrice"`
-	Hash        common.Hash    `json:"hash"`
-	Input       string         `json:"input"`
-	Nonce       string         `json:"nonce"`
-	Index       string         `json:"transactionIndex"`
-	V           string         `json:"v"`
-	R           string         `json:"r"`
-	S           string         `json:"s"`
+	BlockHash           *common.Hash    `json:"blockHash"`
+	BlockNumber         *hexutil.Big    `json:"blockNumber"`
+	From                common.Address  `json:"from"`
+	Gas                 hexutil.Uint64  `json:"gas"`
+	GasPrice            *hexutil.Big    `json:"gasPrice"`
+	GasFeeCap           *hexutil.Big    `json:"maxFeePerGas,omitempty"`
+	GasTipCap           *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
+	MaxFeePerBlobGas    *hexutil.Big    `json:"maxFeePerBlobGas,omitempty"`
+	Hash                common.Hash     `json:"hash"`
+	Input               hexutil.Bytes   `json:"input"`
+	Nonce               hexutil.Uint64  `json:"nonce"`
+	To                  *common.Address `json:"to"`
+	TransactionIndex    *hexutil.Uint64 `json:"transactionIndex"`
+	Value               *hexutil.Big    `json:"value"`
+	Type                hexutil.Uint64  `json:"type"`
+	ChainID             *hexutil.Big    `json:"chainId,omitempty"`
+	BlobVersionedHashes []common.Hash   `json:"blobVersionedHashes,omitempty"`
+	V                   *hexutil.Big    `json:"v"`
+	R                   *hexutil.Big    `json:"r"`
+	S                   *hexutil.Big    `json:"s"`
 }
