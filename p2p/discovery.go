@@ -123,18 +123,18 @@ func (node *Node) Ping() (packet v4wire.Packet, hash []byte, err error) {
 	return packet, hash, nil
 }
 
-func (node *Node) Pong(hash []byte) (packet v4wire.Packet, err error) {
+func (node *Node) Pong(hash []byte) (v4wire.Packet, []byte, error) {
 	remote := v4wire.Endpoint{IP: net.ParseIP(node.Addr), UDP: node.Port, TCP: node.Port}
 	query  := &v4wire.Pong{To: remote, ReplyTok: hash, Expiration: Expiration}
 
 	req, _, err := v4wire.Encode(node.LocalPrv, query)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	_, err = node.Conn.Write(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// TODO: Clean this.
@@ -143,17 +143,33 @@ func (node *Node) Pong(hash []byte) (packet v4wire.Packet, err error) {
 
 	size, _, err := node.Conn.ReadFromUDP(buff)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	packet, _, _, _ = v4wire.Decode(buff[:size])
-	return packet, nil
+	packet, _, hash, _ := v4wire.Decode(buff[:size])
+	return packet, hash, nil
 }
 
+func ParseNeighbors(nodes []string, neighbors *v4wire.Neighbors) error {
+	for _, node := range neighbors.Nodes {
+		pub, _  := v4wire.DecodePubkey(crypto.S256(), node.ID)
+		address := fmt.Sprintf("%s:%d", node.IP.String(), node.TCP)
+
+		enode, err := Enode(pub, address, int(node.UDP))
+		if err != nil {
+			return err
+		}
+
+		nodes = append(nodes, enode)
+	}
+
+	return nil
+}
 
 func Discover() {
 	prv, _ := crypto.LoadECDSA("./pub")
 
+	newNodes   := []string{}
 	knownNodes := []string{
 		"enode://4aeb4ab6c14b23e2c4cfdce879c04b0748a20d8e9b59e25ded2a08143e265c6c25936e74cbc8e641e3312ca288673d91f2f93f8e277de3cfa444ecdaaf982052@157.90.35.166:30303",
 		"enode://d860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9baa4101932a1f5011f16bb2b1bb35db20d6fe28fa0bf09636d26a87d31de9ec6203eeedb1f666@18.138.108.67:30303",
@@ -164,45 +180,50 @@ func Discover() {
 		"enode://b74b01b1a5c207d574396c5954a5d771e1395278118c23a54ee1df18e9f163746fea8c3a9fe763408869bcc0543ef75438e4ab52c550978a1e54100d64b692dc@195.201.242.243:30303",
 	}
 
-	node, err := ConnectNode(prv, knownNodes[6])
+	node, err := ConnectNode(prv, knownNodes[0])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	res, _, err := node.Ping()
+	res, hash, err := node.Ping()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(res)
-	fmt.Println(res.Name())
+	fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
 
-	res, _, err = node.Findnode()
+	if res.Name() == "PING/v4" {
+		res, hash, err = node.Pong(hash)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	if res.Name() == "NEIGHBORS/v4" {
+		fmt.Println("RES 1: ", res.Name(), "NODE: ", node.AddrPort)
+		ParseNeighbors(newNodes, res.(*v4wire.Neighbors))
+		return
+	}
+
+	fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
+
+	res, hash, err = node.Findnode()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(res)
-	fmt.Println(res.Name())
-
-	res, _, err = node.Ping()
-	if err != nil {
-		fmt.Println(err)
+	if res.Name() == "NEIGHBORS/v4" {
+		fmt.Println("RES 2: ", res.Name(), "NODE: ", node.AddrPort)
+		ParseNeighbors(newNodes, res.(*v4wire.Neighbors))
+		
+		fmt.Println("New Nodes")
+		fmt.Println(newNodes)
 		return
 	}
 
-	fmt.Println(res)
-	fmt.Println(res.Name())
-
-	res, _, err = node.Findnode()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(res)
-	fmt.Println(res.Name())
+	fmt.Println("NO RESPONSE")
 }
