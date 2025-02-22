@@ -25,6 +25,7 @@ type Node struct {
 var Expiration = uint64(time.Now().Add(20 * time.Second).Unix())
 var Deadline   = time.Now().Add(2 * time.Second)
 var BuffSize   = 20_000
+var Rounds 		 = 2
 
 func ConnectNode(prv *ecdsa.PrivateKey, addr string) (*Node, error) {
 	enode,    _ := enode.ParseV4(addr)
@@ -36,6 +37,7 @@ func ConnectNode(prv *ecdsa.PrivateKey, addr string) (*Node, error) {
 		return nil, err
 	}
 	
+	fmt.Println("REMOTE: ", remote)
 	conn, err := net.DialUDP("udp", nil, remote)
 	if err != nil {
 		return nil, err
@@ -63,27 +65,8 @@ func (node *Node) Findnode() (packet v4wire.Packet, hash []byte, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-
-	_, err = node.Conn.Write(req)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// TODO: Clean this.
-	buff := make([]byte, BuffSize)
-	node.Conn.SetDeadline(Deadline)
-
-	size, _, err := node.Conn.ReadFromUDP(buff)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	packet, _, hash, err = v4wire.Decode(buff[:size])
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return packet, hash, nil
+	
+	return node.Send(req)
 }
 
 func (node *Node) Ping() (packet v4wire.Packet, hash []byte, err error) {
@@ -103,26 +86,7 @@ func (node *Node) Ping() (packet v4wire.Packet, hash []byte, err error) {
 		return nil, nil, err
 	}
 
-	_, err = node.Conn.Write(req)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// TODO: Clean this.
-	buff := make([]byte, BuffSize)
-	node.Conn.SetDeadline(Deadline)
-
-	size, _, err := node.Conn.ReadFromUDP(buff)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	packet, _, hash, err = v4wire.Decode(buff[:size])
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return packet, hash, nil
+	return node.Send(req)
 }
 
 func (node *Node) Pong(hash []byte) (v4wire.Packet, []byte, error) {
@@ -134,7 +98,11 @@ func (node *Node) Pong(hash []byte) (v4wire.Packet, []byte, error) {
 		return nil, nil, err
 	}
 
-	_, err = node.Conn.Write(req)
+	return node.Send(req)
+}
+
+func (node *Node) Send(req []byte) (v4wire.Packet, []byte, error) {
+	_, err := node.Conn.Write(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -207,54 +175,50 @@ func Discover() {
 	prv, _ := crypto.LoadECDSA("./pub")
 
 	newNodes      := []string{}
-	knownNodes, _ := LoadNodes("bootnodes.txt") 
+	knownNodes, _ := LoadNodes("bootnodes.txt")
 
-	for _, enode := range knownNodes {
-		node, err := ConnectNode(prv, enode)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-
-		res, hash, err := node.Ping()
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
-
-		if res.Name() == "PING/v4" {
-			res, hash, err = node.Pong(hash)
+	for i:=0; i < Rounds; i++ {
+		for _, enode := range knownNodes {
+			node, err := ConnectNode(prv, enode)
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
-		}
 
-		if res.Name() == "NEIGHBORS/v4" {
-			fmt.Println("RES 1: ", res.Name(), "NODE: ", node.AddrPort)
-			ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
-			SaveNodes(newNodes, "nodes.txt")
-			continue
-		}
+			res, hash, err := node.Ping()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 
-		fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
+			if res.Name() == "PING/v4" {
+				res, hash, err = node.Pong(hash)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+			}
 
-		res, hash, err = node.Findnode()
-		if err != nil {
-			fmt.Println(err)
-			continue
+			if res.Name() == "NEIGHBORS/v4" {
+				ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
+				continue
+			}
+			
+			res, hash, err = node.Findnode()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			
+			if res.Name() == "NEIGHBORS/v4" {
+				ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
+				continue
+			}
 		}
-
-		if res.Name() == "NEIGHBORS/v4" {
-			fmt.Println("RES 2: ", res.Name(), "NODE: ", node.AddrPort)
-			ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
-			SaveNodes(newNodes, "nodes.txt")
-			continue
-		}
+		
+		knownNodes = newNodes
 	}
-
+	
+	SaveNodes(newNodes, "nodes.txt")
 	fmt.Println(len(newNodes))
 }
