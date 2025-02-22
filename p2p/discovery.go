@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"net"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -150,7 +151,7 @@ func (node *Node) Pong(hash []byte) (v4wire.Packet, []byte, error) {
 	return packet, hash, nil
 }
 
-func ParseNeighbors(nodes []string, neighbors *v4wire.Neighbors) error {
+func ParseNeighbors(nodes *[]string, neighbors *v4wire.Neighbors) error {
 	for _, node := range neighbors.Nodes {
 		pub, _  := v4wire.DecodePubkey(crypto.S256(), node.ID)
 		address := fmt.Sprintf("%s:%d", node.IP.String(), node.TCP)
@@ -160,7 +161,25 @@ func ParseNeighbors(nodes []string, neighbors *v4wire.Neighbors) error {
 			return err
 		}
 
-		nodes = append(nodes, enode)
+		*nodes = append(*nodes, enode)
+	}
+
+	return nil
+}
+
+func SaveNodes(nodes []string, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	
+	defer file.Close()
+
+	for _, line := range nodes {
+		_, err := fmt.Fprintln(file, line)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -180,50 +199,52 @@ func Discover() {
 		"enode://b74b01b1a5c207d574396c5954a5d771e1395278118c23a54ee1df18e9f163746fea8c3a9fe763408869bcc0543ef75438e4ab52c550978a1e54100d64b692dc@195.201.242.243:30303",
 	}
 
-	node, err := ConnectNode(prv, knownNodes[0])
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	res, hash, err := node.Ping()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
-
-	if res.Name() == "PING/v4" {
-		res, hash, err = node.Pong(hash)
+	for _, enode := range knownNodes {
+		node, err := ConnectNode(prv, enode)
 		if err != nil {
 			fmt.Println(err)
-			return
+			continue
+		}
+
+
+		res, hash, err := node.Ping()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
+
+		if res.Name() == "PING/v4" {
+			res, hash, err = node.Pong(hash)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		}
+
+		if res.Name() == "NEIGHBORS/v4" {
+			fmt.Println("RES 1: ", res.Name(), "NODE: ", node.AddrPort)
+			ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
+			SaveNodes(newNodes, "nodes.txt")
+			continue
+		}
+
+		fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
+
+		res, hash, err = node.Findnode()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if res.Name() == "NEIGHBORS/v4" {
+			fmt.Println("RES 2: ", res.Name(), "NODE: ", node.AddrPort)
+			ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
+			SaveNodes(newNodes, "nodes.txt")
+			continue
 		}
 	}
 
-	if res.Name() == "NEIGHBORS/v4" {
-		fmt.Println("RES 1: ", res.Name(), "NODE: ", node.AddrPort)
-		ParseNeighbors(newNodes, res.(*v4wire.Neighbors))
-		return
-	}
-
-	fmt.Println("RES: ", res.Name(), "NODE: ", node.AddrPort)
-
-	res, hash, err = node.Findnode()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if res.Name() == "NEIGHBORS/v4" {
-		fmt.Println("RES 2: ", res.Name(), "NODE: ", node.AddrPort)
-		ParseNeighbors(newNodes, res.(*v4wire.Neighbors))
-		
-		fmt.Println("New Nodes")
-		fmt.Println(newNodes)
-		return
-	}
-
-	fmt.Println("NO RESPONSE")
+	fmt.Println(len(newNodes))
 }
