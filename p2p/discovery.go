@@ -17,7 +17,7 @@ type Node struct {
 	LocalPrv  *ecdsa.PrivateKey
 	RemotePub  v4wire.Pubkey
 	AddrPort   string
-	Addr 			 string
+	Addr       string
 	Port       uint16
 	Conn  	  *net.UDPConn
 } 
