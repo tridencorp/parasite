@@ -11,6 +11,9 @@ type Peer struct {
 	conn     *rlpx.Conn
 	messages chan Msg
 
+	Response chan Msg // Default channel to which we will send the response.
+	Failure  chan Msg // Default channel to which we will send the failures.
+
 	// Track requested messages so we can verify if
 	// an incoming message is the one we requested.
 	// 
@@ -24,10 +27,20 @@ type Peer struct {
 // Return new peer.
 func NewPeer(conn *rlpx.Conn) *Peer {
 	return &Peer{
-		conn: conn, 
+		conn: conn,
 		messages: make(chan Msg, 100),
 		RequestedMsgs: make(map[uint64]Msg),
 	}
+}
+
+func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
+	msg, err := BlockHeadersReqMsg(number, amount, 0, false)
+	if err != nil {
+		return err
+	}
+
+	peer.Send(msg)
+	return nil
 }
 
 // Reads message from a connected peer.
