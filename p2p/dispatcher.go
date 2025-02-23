@@ -1,22 +1,27 @@
-package server
+package p2p
 
 import (
 	"parasite/log"
-	"parasite/p2p"
 )
 
+// Dispatcher interface. It should dispatch messages to proper handlers.
+type Dispatcher interface {
+	Channels() (chan Msg, chan Msg)
+	Dispatch(peer *Peer, msg Msg)
+}
+
 // Dispatching received messages to designated handlers.
-type Dispatcher struct {
-	Handler chan p2p.Msg
-	Failure chan p2p.Msg
+type MsgDispatcher struct {
+	Handler chan Msg
+	Failure chan Msg
 }
 
 // Create new Dispatcher.
-func NewDispatcher() *Dispatcher {
-	return &Dispatcher{make(chan p2p.Msg, 1), make(chan p2p.Msg, 10)}
+func NewDispatcher() *MsgDispatcher {
+	return &MsgDispatcher{make(chan Msg, 1), make(chan Msg, 10)}
 }
 
-func (dispatcher *Dispatcher) Channels() (chan p2p.Msg, chan p2p.Msg){
+func (dispatcher *MsgDispatcher) Channels() (chan Msg, chan Msg){
 	return dispatcher.Handler, dispatcher.Failure
 }
 
@@ -24,38 +29,38 @@ func (dispatcher *Dispatcher) Channels() (chan p2p.Msg, chan p2p.Msg){
 // It uses 2 channels: one for normal message handling and another one 
 // for sending errors.
 // Dispatcher is called by peer each time new message arrives.
-func (dispatcher *Dispatcher) Dispatch(peer *p2p.Peer, msg p2p.Msg) { 
-	if msg.Code == p2p.PingMsg {
-		peer.Send(p2p.NewMsg(p2p.PongMsg, []byte{}))
+func (dispatcher *MsgDispatcher) Dispatch(peer *Peer, msg Msg) { 
+	if msg.Code == PingMsg {
+		peer.Send(NewMsg(PongMsg, []byte{}))
 		return
 	}
 
-	if msg.Code == p2p.BlockHeadersMsg {
+	if msg.Code == BlockHeadersMsg {
 		dispatcher.Handler <- msg
 		return
 	}
 
-	if msg.Code == p2p.DiscMsg {
+	if msg.Code == DiscMsg {
 		dispatcher.Failure <- msg
 		return
 	}
 
-	if msg.Code == p2p.NewPooledTransactionHashesMsg { 
+	if msg.Code == NewPooledTransactionHashesMsg {
 		dispatcher.Handler <- msg
 		return
 	}
 
-	if msg.Code == p2p.TransactionsMsg {
+	if msg.Code == TransactionsMsg {
 		dispatcher.Handler <- msg
 		return
 	}
 
-	if msg.Code == p2p.BlockBodiesMsg { 
+	if msg.Code == BlockBodiesMsg { 
 		dispatcher.Handler <- msg
 		return 
 	}
 
-	if msg.Code == p2p.ReceiptsMsg { 
+	if msg.Code == ReceiptsMsg { 
 		dispatcher.Handler <- msg
 		return 
 	}
@@ -70,17 +75,17 @@ func (dispatcher *Dispatcher) Dispatch(peer *p2p.Peer, msg p2p.Msg) {
 	// own node. It's good for dApps.
 	// 
 	// TODO: return empty response.
-	if msg.Code == p2p.GetBlockHeadersMsg {
+	if msg.Code == GetBlockHeadersMsg {
 		dispatcher.Handler <- msg
 		return
 	}
 
-	if msg.Code == p2p.GetBlockBodiesMsg {
+	if msg.Code == GetBlockBodiesMsg {
 		dispatcher.Handler <- msg
 		return
 	}
 
-	if msg.Code == p2p.GetReceiptsMsg { 
+	if msg.Code == GetReceiptsMsg { 
 		dispatcher.Handler <- msg
 		return 
 	}

@@ -1,7 +1,6 @@
-package server
+package p2p
 
 import (
-	"parasite/p2p"
 	"testing"
 )
 
@@ -9,19 +8,19 @@ func TestMessageDispatch(t *testing.T) {
 	// Messages should be dispatched to correct handlers.
 	// Handler should receive the same message that the dispatcher received.
 
-	msg1 := p2p.NewMsg(p2p.BlockHeadersMsg,    []byte("BlockHeadersMsg"))
-	msg3 := p2p.NewMsg(p2p.TransactionsMsg,    []byte("TransactionsMsg"))
-	msg4 := p2p.NewMsg(p2p.BlockBodiesMsg,     []byte("BlockBodiesMsg"))     
-	msg5 := p2p.NewMsg(p2p.ReceiptsMsg,        []byte("ReceiptsMsg"))        
-	msg6 := p2p.NewMsg(p2p.GetBlockHeadersMsg, []byte("GetBlockHeadersMsg"))
-	msg7 := p2p.NewMsg(p2p.GetBlockBodiesMsg,  []byte("GetBlockBodiesMsg"))
-	msg8 := p2p.NewMsg(p2p.GetReceiptsMsg,     []byte("GetReceiptsMsg"))
-	msg9 := p2p.NewMsg(p2p.NewPooledTransactionHashesMsg, []byte("NewPooledTransactionHashesMsg"))
+	msg1 := NewMsg(BlockHeadersMsg,    []byte("BlockHeadersMsg"))
+	msg3 := NewMsg(TransactionsMsg,    []byte("TransactionsMsg"))
+	msg4 := NewMsg(BlockBodiesMsg,     []byte("BlockBodiesMsg"))     
+	msg5 := NewMsg(ReceiptsMsg,        []byte("ReceiptsMsg"))        
+	msg6 := NewMsg(GetBlockHeadersMsg, []byte("GetBlockHeadersMsg"))
+	msg7 := NewMsg(GetBlockBodiesMsg,  []byte("GetBlockBodiesMsg"))
+	msg8 := NewMsg(GetReceiptsMsg,     []byte("GetReceiptsMsg"))
+	msg9 := NewMsg(NewPooledTransactionHashesMsg, []byte("NewPooledTransactionHashesMsg"))
 
 	tests := []struct {
 		name 	   string
-		message  p2p.Msg
-		expected p2p.Msg
+		message  Msg
+		expected Msg
 	}{
 		{ name: "BlockHeadersMsg",    message: msg1, expected: msg1},
 		{ name: "TransactionsMsg",    message: msg3, expected: msg3},
