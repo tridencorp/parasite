@@ -17,8 +17,8 @@ type MsgDispatcher struct {
 }
 
 // Create new Dispatcher.
-func NewDispatcher() *MsgDispatcher {
-	return &MsgDispatcher{make(chan Msg, 1), make(chan Msg, 10)}
+func NewDispatcher(response, failure chan Msg) *MsgDispatcher {
+	return &MsgDispatcher{response, failure}
 }
 
 func (dispatcher *MsgDispatcher) Channels() (chan Msg, chan Msg){

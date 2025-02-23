@@ -10,7 +10,7 @@ import (
 type PeerHub struct {
 	Peers    []*Peer
 	PeerList []string
-	PrivKey *ecdsa.PrivateKey
+	PrvKey *ecdsa.PrivateKey
 
 	// Failure channel, on which errors from peers are received.
 	// Based on the message type PeerHub will decide what to do,
@@ -21,21 +21,22 @@ type PeerHub struct {
 	dispatcher Dispatcher
 }
 
-func NewPeerHub(peerList []string, dispatcher Dispatcher, prv *ecdsa.PrivateKey) *PeerHub {
-	_, failure := dispatcher.Channels()
+func NewPeerHub(peerList []string, prv *ecdsa.PrivateKey) *PeerHub {
+	response, failure := make(chan Msg), make(chan Msg) 
+	dispatcher := NewDispatcher(response, failure) 
 
 	return &PeerHub{
 		PeerList: peerList, 
-		PrivKey: prv, 
+		PrvKey: prv, 
 		dispatcher: dispatcher,
 		failure: failure,
 	}
 }
 
-// Try to connect to all peers.
+// Connect all peers.
 func (hub *PeerHub) ConnectAll() {
 	for _, address := range hub.PeerList {
-		peer, err := Connect(address, hub.PrivKey)
+		peer, err := Connect(address, hub.PrvKey)
 		if err != nil {
 			log.Error(err.Error())
 			continue
@@ -43,6 +44,7 @@ func (hub *PeerHub) ConnectAll() {
 
 		hub.Peers = append(hub.Peers, peer)
 
+		// Run connected peer in goroutine and listen for incomming messages.
 		go peer.StartWriter()
 		go peer.StartReader(hub.dispatcher)
 	}

@@ -43,6 +43,12 @@ func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
 	return nil
 }
 
+// Start writer and reader goroutines.
+func (p *Peer) Start() {
+	p.StartWriter()
+	p.StartReader(NewDispatcher(p.Response, p.Failure))
+}
+
 // Reads message from a connected peer.
 // BlocksBlocks until data is available.
 func (p *Peer) Read() (Msg, error) {
@@ -75,12 +81,6 @@ func (p *Peer) StartWriter() {
 	}
 }
 
-// Dispatcher interface. It should dispatch messages to proper handlers.
-type Dispatcher interface {
-	Channels() (chan Msg, chan Msg)
-	Dispatch(peer *Peer, msg Msg)
-}
-
 // Start the peer reader, which will read messages 
 // sequentially and send them to dispatcher.
 func (p *Peer) StartReader(dispatcher Dispatcher) { 
@@ -94,3 +94,4 @@ func (p *Peer) StartReader(dispatcher Dispatcher) {
 		dispatcher.Dispatch(p, msg)
 	}
 }
+

@@ -13,7 +13,6 @@ import (
 // We will be only supporting the newest ETH protocol.
 
 const ETH = 68
-
 const BaseProtocolSize = 16
 
 const (
@@ -75,13 +74,32 @@ type blockHeadersReq struct {
 	}
 }
 
+type Request struct {
+	ReqID uint64
+	Data  any
+}
+
 type blockHeadersRes struct {
 	ReqId   uint64
 	Headers []*block.BlockHeader
 }
 
+// TransactionsMsg
+
+// Parse the transaction message that was sent to us during the broadcast.
+func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
+	txs := new([]types.Transaction)
+
+	err := rlp.DecodeBytes(msg.Data, txs)
+	if err != nil {
+		return nil, nil
+	}
+
+	return txs, err
+}
+
 // Create BlockHeaders request message.
-func BlockHeadersReq(number, amount, skip uint64, reverse bool) (Msg, error) {
+func BlockHeadersReqMsg(number, amount, skip uint64, reverse bool) (Msg, error) {
 	req := blockHeadersReq{
 		ReqId: rand.Uint64(),
 		Request: struct {
@@ -145,26 +163,30 @@ func PooledTransactions(msg Msg) (*pooledTransactions, error) {
 
 	err := rlp.DecodeBytes(msg.Data, pooledTxs)
 	if err != nil {
-		return nil, nil
+		return nil, nil 
 	}
 
 	return pooledTxs, nil
 }
 
-// Parse the transaction message that was sent to us during the broadcast.
-func NewTransactions(msg Msg) (*[]types.Transaction, error) {
-	txs := new([]types.Transaction)
-
-	err := rlp.DecodeBytes(msg.Data, txs)
-	if err != nil {
-		return nil, nil
-	}
-
-	return txs, err
+type BlockBody struct {
+	Transactions []*types.Transaction
+	Uncles       []*types.Header
+	Withdrawals  []*types.Withdrawal `rlp:"optional"`
 }
 
+type blockBodiesRes struct {
+	ReqId   		uint64
+	BlockBodies []BlockBody
+}
 
+func BlockBodiesRes(msg Msg) ([]BlockBody, error) {
+	res := blockBodiesRes{}
 
+	err := rlp.DecodeBytes(msg.Data, &res)
+	if err != nil {
+		return nil, err
+	}
 
-
-
+	return res.BlockBodies, nil
+}
