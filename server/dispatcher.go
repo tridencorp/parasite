@@ -60,6 +60,16 @@ func (dispatcher *Dispatcher) Dispatch(peer *p2p.Peer, msg p2p.Msg) {
 		return 
 	}
 
+	// We are parasite.
+	// We are not responding to Get requests. 
+	// If one arrives, we will return an empty response.
+	// 
+	// Nodes like this are helpfull to decrease load on
+	// whole ethereum network - instead of sending rpc
+	// requests to other nodes we will be calling our 
+	// own node. It's good for dApps.
+	// 
+	// TODO: return empty response.
 	if msg.Code == p2p.GetBlockHeadersMsg {
 		dispatcher.Handler <- msg
 		return
