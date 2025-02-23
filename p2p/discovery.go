@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,9 @@ import (
 
 type Node struct {
 	LocalPrv  *ecdsa.PrivateKey
+	LocalPort  uint16
+	LocalAddr  string
+
 	RemotePub  v4wire.Pubkey
 	AddrPort   string
 	Addr       string
@@ -42,8 +46,14 @@ func ConnectNode(prv *ecdsa.PrivateKey, addr string) (*Node, error) {
 		return nil, err
 	}
 
+	addres   := strings.Split(conn.LocalAddr().String(), ":")
+	port     := addres[1]
+	value, _ := strconv.ParseUint(port, 10, 16)
+
 	node := &Node{
-		LocalPrv:  prv, 
+		LocalPrv:  prv,
+		LocalPort: uint16(value),
+		LocalAddr: addres[0], 
 		RemotePub: pubkey,
 		AddrPort:  addrport.String(),
 		Addr:      addrport.Addr().String(),
@@ -64,14 +74,13 @@ func (node *Node) Findnode() (packet v4wire.Packet, hash []byte, err error) {
 }
 
 func (node *Node) Ping() (packet v4wire.Packet, hash []byte, err error) {
-	// TODO: clean this.
-	local  := v4wire.Endpoint{IP: net.ParseIP("192.168.1.167"), UDP: 30304, TCP: 30304}
-	remote := v4wire.Endpoint{IP: net.ParseIP(node.Addr), UDP: node.Port, TCP: node.Port}
+	local  := v4wire.Endpoint{IP: net.ParseIP(node.LocalAddr), UDP: node.LocalPort, TCP: node.LocalPort}
+	remote := v4wire.Endpoint{IP: net.ParseIP(node.Addr),      UDP: node.Port,      TCP: node.Port}
 
 	query := &v4wire.Ping{
 		Version: 4,
 		From: local,
-		To:   remote,
+		To: remote,
 		Expiration: Expiration,
 	}
 
@@ -139,7 +148,7 @@ func SaveNodes(nodes []string, filename string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	defer file.Close()
 
 	for i, line := range nodes {
@@ -147,7 +156,7 @@ func SaveNodes(nodes []string, filename string) error {
 			_, err := fmt.Fprint(file, line)
 			if err != nil {
 				return err
-			}
+			}	
 			break
 		}
 
@@ -177,42 +186,34 @@ func Discover() {
 			res, hash, err := node.Ping()
 			if err != nil {
 				fmt.Println(err)
+				node.Conn.Close()
 				continue
 			}
 
-			if res.Name() == "PING/v4" {
-				res, hash, err = node.Pong(hash)
-				if err != nil {
-					fmt.Println(err)
-					continue
+			for {
+				if res.Name() == "PING/v4" {
+					res, hash, err = node.Pong(hash)
+					if err != nil {
+						fmt.Println(err)
+						node.Conn.Close()
+						break
+					}
+				}	
+
+				if res.Name() == "NEIGHBORS/v4" {
+					ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
+					node.Conn.Close()
+					break
 				}
-			}
-
-			if res.Name() == "NEIGHBORS/v4" {
-				ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
-				continue
-			}
-
-			res, hash, err = node.Findnode()
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			if res.Name() == "NEIGHBORS/v4" {
-				ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
-				continue
-			}
-
-			res, hash, err = node.Findnode()
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			if res.Name() == "NEIGHBORS/v4" {
-				ParseNeighbors(&newNodes, res.(*v4wire.Neighbors))
-				continue
+	
+				if res.Name() == "PONG/v4" {
+					res, hash, err = node.Findnode()
+					if err != nil {
+						fmt.Println(err)
+						node.Conn.Close()
+						break
+					}							
+				}	
 			}
 		}
 
