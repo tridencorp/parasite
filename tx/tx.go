@@ -4,16 +4,45 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type Legacy struct {
-	Nonce    uint64
-	GasPrice *big.Int
-	Gas      uint64
-	To       *common.Address `rlp:"nil"`
-	Value    *big.Int
-	Data     []byte
-	V, R, S  *big.Int
+type Transaction interface {
+	nonce() 	 uint64
+	gas() 		 uint64
+	gasPrice() *big.Int
+	to() 			*common.Address
+	value() 	*big.Int
+	data() 		 []byte
+}
+
+// TODO: Tx is temporary workaround for stupid ethereum transaction design.
+// Will be simplified.
+type Tx struct {
+	tx Transaction
+}
+
+func (tx *Tx) Nonce()    uint64          { return tx.tx.nonce() }
+func (tx *Tx) Gas()      uint64          { return tx.tx.gas() }
+func (tx *Tx) GasPrice() *big.Int        { return tx.tx.gasPrice() }
+func (tx *Tx) To()       *common.Address { return tx.tx.to() }
+func (tx *Tx) Value()    *big.Int        { return tx.tx.value() }
+func (tx *Tx) Data()     []byte          { return tx.tx.data() }
+
+func Decode(raw []byte) (*Tx, error) {
+	// Check if we have LegacyTx.
+	tx := new(Tx)
+
+	if IsList(raw) {
+		legacy := new(Legacy)
+		err := rlp.DecodeBytes(raw, legacy)
+		if err != nil {
+			return nil, nil
+		}
+		tx.tx = legacy	
+		return tx, nil
+	}
+	return nil, nil
 }
 
 // Because of crappy ethereum transaction encoding/decoding,
@@ -22,12 +51,12 @@ type Legacy struct {
 func IsList(raw []byte) bool {
 	// TODO: double check this condition. RLP list encoding
 	// should begin with 0xc0-0xff prefix.
-	if raw[0] <= 255 {
-		return true
-	}
-
+	if raw[0] <= 255 { return true }
 	return false
 }
+
+
+
 
 // Types:
 // LegacyTxType     = 0x00
