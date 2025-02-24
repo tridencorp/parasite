@@ -85,6 +85,11 @@ type blockBodiesMsg struct {
 	Bodies []*BlockBody
 }
 
+type receiptsMsg struct {
+	ReqID uint64
+	Receipts [][]*types.Receipt
+}
+
 type pooledTransactions struct {
 	Types  []byte
 	Sizes  []uint32
@@ -173,6 +178,18 @@ func EncodeGetReceiptsMsg(headers []common.Hash) (*Msg, error) {
 	msg.ReqId = req.ReqID
 
 	return msg, nil
+}
+
+// Decode ReceiptsMsg.
+func DecodeReceiptsMsg(msg *Msg) ([][]*types.Receipt, error) {
+	res := receiptsMsg{}
+
+	err := rlp.DecodeBytes(msg.Data, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Receipts, nil
 }
 
 // Parse the transaction message that was sent to us during the broadcast.
