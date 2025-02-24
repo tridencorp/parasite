@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"math/rand/v2"
 	"parasite/block"
 	"parasite/tx"
 
@@ -24,21 +23,14 @@ const (
 	PingMsg      = 0x02
 	PongMsg      = 0x03
 
-	// Extended protocol msg codes: 0x10...0x1C (16-28)
 	StatusMsg                     = 0x10
-
-	// Not supported anymore
-	NewBlockHashesMsg             = 0x11
-
+	NewBlockHashesMsg             = 0x11 // Not supported anymore
 	TransactionsMsg               = 0x12
 	GetBlockHeadersMsg            = 0x13
 	BlockHeadersMsg               = 0x14
 	GetBlockBodiesMsg             = 0x15
 	BlockBodiesMsg                = 0x16
-
-	// Not supported anymore
-	NewBlockMsg                   = 0x17
-
+	NewBlockMsg                   = 0x17 // Not supported anymore
 	NewPooledTransactionHashesMsg = 0x18
 	GetPooledTransactionsMsg      = 0x19
 	PooledTransactionsMsg         = 0x1A
@@ -102,24 +94,6 @@ type BlockBody struct {
 	Withdrawals  []*types.Withdrawal `rlp:"optional"`
 }
 
-// Create GetBlockHeadersMsg request.
-func EncodeGetBlockHeadersMsg(number, amount, skip uint64, reverse bool) (*Msg, error) {
-	req := Request{
-		ReqID: rand.Uint64(),
-		Data: getBlockHeadersMsg{number, amount, skip, reverse},
-	}
-
-	data, err := rlp.EncodeToBytes(req)
-	if err != nil {
-		return nil, err
-	}
-
-	msg := NewMsg(GetBlockHeadersMsg, data)
-	msg.ReqId = req.ReqID
-
-	return msg, nil
-}
-
 // Decode BlockHeadersMsg response.
 func DecodeBlockHeadersMsg(msg *Msg) ([]*block.BlockHeader, error) {
 	headers := new(blockHeadersMsg)
@@ -130,24 +104,6 @@ func DecodeBlockHeadersMsg(msg *Msg) ([]*block.BlockHeader, error) {
 	}
 
 	return headers.Headers, nil
-}
-
-// Create GetBlockBodiesMsg request.
-func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
-	req := Request{
-		ReqID: rand.Uint64(),
-		Data: headers,
-	}
-
-	data, err := rlp.EncodeToBytes(req)
-	if err != nil {
-		return nil, err
-	}
-
-	msg := NewMsg(GetBlockBodiesMsg, data)
-	msg.ReqId = req.ReqID
-
-	return msg, nil
 }
 
 // Decode BlockBodiesMsg.
@@ -162,24 +118,6 @@ func DecodeBlockBodiesMsg(msg *Msg) ([]*BlockBody, error) {
 	return res.Bodies, nil
 }
 
-// Create GetReceiptsMsg request.
-func EncodeGetReceiptsMsg(headers []common.Hash) (*Msg, error) {
-	req := Request{
-		ReqID: rand.Uint64(),
-		Data: headers,
-	}
-
-	data, err := rlp.EncodeToBytes(req)
-	if err != nil {
-		return nil, err
-	}
-
-	msg := NewMsg(GetReceiptsMsg, data)
-	msg.ReqId = req.ReqID
-
-	return msg, nil
-}
-
 // Decode ReceiptsMsg.
 func DecodeReceiptsMsg(msg *Msg) ([][]*types.Receipt, error) {
 	res := receiptsMsg{}
@@ -190,29 +128,4 @@ func DecodeReceiptsMsg(msg *Msg) ([][]*types.Receipt, error) {
 	}
 
 	return res.Receipts, nil
-}
-
-// Parse the transaction message that was sent to us during the broadcast.
-func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
-	txs := new([]types.Transaction)
-	
-	err := rlp.DecodeBytes(msg.Data, txs)
-	if err != nil {
-		return nil, nil
-	}
-	
-	return txs, err
-}
-
-
-// Parse pooled transactions message that we received from peer.
-func PooledTransactions(msg Msg) (*pooledTransactions, error) {
-	pooledTxs := new(pooledTransactions)
-
-	err := rlp.DecodeBytes(msg.Data, pooledTxs)
-	if err != nil {
-		return nil, nil 
-	}
-
-	return pooledTxs, nil
 }

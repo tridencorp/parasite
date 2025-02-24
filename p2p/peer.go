@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"math/rand/v2"
 	"parasite/log"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -35,20 +36,39 @@ func NewPeer(conn *rlpx.Conn) *Peer {
 }
 
 func (peer *Peer) GetBlockBodiesMsg(hashes []common.Hash) error {
-	msg, err := EncodeGetBlockBodiesMsg(hashes)
-	if err != nil {
-		return err
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: hashes,
 	}
+
+	msg, _ := EncodeMsg(GetBlockBodiesMsg, req)
+	msg.ReqId = req.ReqID
+
+	peer.Send(msg)
+	return nil
+}
+
+func (peer *Peer) GetGetReceiptsMsg(hashes []common.Hash) error {
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: hashes,
+	}
+
+	msg, _ := EncodeMsg(GetReceiptsMsg, req)
+	msg.ReqId = req.ReqID
 
 	peer.Send(msg)
 	return nil
 }
 
 func (peer *Peer) GetBlockHeadersMsg(number, amount uint64) error {
-	msg, err := EncodeGetBlockHeadersMsg(number, amount, 0, false)
-	if err != nil {
-		return err
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: getBlockHeadersMsg{number, amount, 0, false},
 	}
+
+	msg, _ := EncodeMsg(GetBlockHeadersMsg, req)
+	msg.ReqId = req.ReqID
 
 	peer.Send(msg)
 	return nil
