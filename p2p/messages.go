@@ -42,8 +42,8 @@ const (
 	NewPooledTransactionHashesMsg = 0x18
 	GetPooledTransactionsMsg      = 0x19
 	PooledTransactionsMsg         = 0x1A
-	GetReceiptsMsg                = 0x1B
-	ReceiptsMsg                   = 0x1C
+	GetReceiptsMsg                = 0x1F
+	ReceiptsMsg                   = 0x1A
 )
 
 var DiscReasons = []string{
@@ -157,6 +157,23 @@ func DecodeBlockBodiesMsg(msg *Msg) ([]*BlockBody, error) {
 	return res.Bodies, nil
 }
 
+// Create GetReceiptsMsg request.
+func EncodeGetReceiptsMsg(headers []common.Hash) (*Msg, error) {
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: headers,
+	}
+
+	data, err := rlp.EncodeToBytes(req)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := NewMsg(GetReceiptsMsg, data)
+	msg.ReqId = req.ReqID
+
+	return msg, nil
+}
 
 // Parse the transaction message that was sent to us during the broadcast.
 func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
