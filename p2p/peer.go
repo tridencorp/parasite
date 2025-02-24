@@ -1,9 +1,11 @@
 package p2p
 
 import (
+	"math/rand/v2"
 	"parasite/log"
 
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // Main struct handling P2P communication.
@@ -34,10 +36,18 @@ func NewPeer(conn *rlpx.Conn) *Peer {
 }
 
 func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
-	msg, err := BlockHeadersReqMsg(number, amount, 0, false)
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: blockHeadersReq{number, amount, 0, false},
+	}
+
+	data, err := rlp.EncodeToBytes(req)
 	if err != nil {
 		return err
 	}
+
+	msg := NewMsg(GetBlockHeadersMsg, data)
+	msg.ReqId = req.ReqID
 
 	peer.Send(msg)
 	return nil
@@ -45,8 +55,19 @@ func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
 
 // Start writer and reader goroutines.
 func (p *Peer) Start() {
-	p.StartWriter()
-	p.StartReader(NewDispatcher(p.Response, p.Failure))
+	p.Response, p.Failure = make(chan Msg, 1), make(chan Msg, 1)
+
+	go p.StartWriter()
+	go p.StartReader(NewDispatcher(p.Response, p.Failure))
+}
+
+// Close peer connection.
+// 
+// TODO: Goroutines also should be closed.
+// TODO: A lot of goroutines can use this,
+// close it safely.
+func (p *Peer) Close() error {
+	return p.conn.Close()
 }
 
 // Reads message from a connected peer.
@@ -91,7 +112,7 @@ func (p *Peer) StartReader(dispatcher Dispatcher) {
 			break
 		}
 
-		dispatcher.Dispatch(p, msg)
+		p.Response <- msg
 	}
 }
 
