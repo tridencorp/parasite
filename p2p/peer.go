@@ -3,16 +3,17 @@ package p2p
 import (
 	"parasite/log"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
 )
 
 // Main struct handling P2P communication.
 type Peer struct {
 	conn     *rlpx.Conn
-	messages chan Msg
+	messages chan *Msg
 
-	Response chan Msg // Default channel to which we will send the response.
-	Failure  chan Msg // Default channel to which we will send the failures.
+	Response chan *Msg // Default channel to which we will send the response.
+	Failure  chan *Msg // Default channel to which we will send the failures.
 
 	// Track requested messages so we can verify if
 	// an incoming message is the one we requested.
@@ -21,19 +22,29 @@ type Peer struct {
 	// and use correct handler for processing.
 	// 
 	// We will use requestId for finding req/res match.
-	RequestedMsgs map[uint64]Msg
+	RequestedMsgs map[uint64]*Msg
 }
 
 // Return new peer.
 func NewPeer(conn *rlpx.Conn) *Peer {
 	return &Peer{
 		conn: conn,
-		messages: make(chan Msg, 100),
-		RequestedMsgs: make(map[uint64]Msg),
+		messages: make(chan *Msg, 100),
+		RequestedMsgs: make(map[uint64]*Msg),
 	}
 }
 
-func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
+func (peer *Peer) GetBlockBodiesMsg(headerHashes []common.Hash) error {
+	msg, err := EncodeGetBlockBodiesMsg(headerHashes)
+	if err != nil {
+		return err
+	}
+
+	peer.Send(msg)
+	return nil
+}
+
+func (peer *Peer) GetBlockHeadersMsg(number, amount uint64) error {
 	msg, err := EncodeGetBlockHeadersMsg(number, amount, 0, false)
 	if err != nil {
 		return err
@@ -45,7 +56,7 @@ func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
 
 // Start writer and reader goroutines.
 func (p *Peer) Start() {
-	p.Response, p.Failure = make(chan Msg, 1), make(chan Msg, 1)
+	p.Response, p.Failure = make(chan *Msg, 1), make(chan *Msg, 1)
 
 	go p.StartWriter()
 	go p.StartReader(NewDispatcher(p.Response, p.Failure))
@@ -62,17 +73,17 @@ func (p *Peer) Close() error {
 
 // Reads message from a connected peer.
 // BlocksBlocks until data is available.
-func (p *Peer) Read() (Msg, error) {
-	code, data, size, err := p.conn.Read()
+func (p *Peer) Read() (*Msg, error) {
+	code, data, _, err := p.conn.Read()
 	if err != nil {
-		return Msg{}, err
+		return nil, err
 	}
 
-	return Msg{Code: code, Size: uint32(size), Data: data}, err
+	return NewMsg(int(code), data), nil
 }
 
 // Send msg to peer messages channel.
-func (p *Peer) Send(msg Msg) {
+func (p *Peer) Send(msg *Msg) {
 	p.RequestedMsgs[msg.ReqId] = msg
 	p.messages <- msg
 }
