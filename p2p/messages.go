@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"math/rand/v2"
+	"parasite/block"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -66,11 +67,16 @@ type Request struct {
 	Data  any
 }
 
-type blockHeadersReq struct {
+type getBlockHeadersMsg struct {
 	Number  uint64
 	Amount  uint64
 	Skip    uint64
 	Reverse bool
+}
+
+type blockHeadersMsg struct {
+	ReqID uint64
+	Headers []*block.BlockHeader
 }
 
 type blockBodiesReq struct {
@@ -94,6 +100,36 @@ type blockBodiesRes struct {
 	BlockBodies []BlockBody
 }
 
+// Create GetBlockHeadersMsg request.
+func EncodeGetBlockHeadersMsg(number, amount, skip uint64, reverse bool) (*Msg, error) {
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: getBlockHeadersMsg{number, amount, skip, reverse},
+	}
+
+	data, err := rlp.EncodeToBytes(req)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := NewMsg(GetBlockHeadersMsg, data)
+	msg.ReqId = req.ReqID
+
+	return msg, nil
+}
+
+// Decode BlockHeadersMsg response.
+func DecodeBlockHeadersMsg(msg *Msg) ([]*block.BlockHeader, error) {
+	headers := new(blockHeadersMsg)
+
+	err := rlp.DecodeBytes(msg.Data, &headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return headers.Headers, nil
+}
+
 // Create GetBlockBodiesMsg request.
 func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
 	req := Request{
@@ -111,36 +147,6 @@ func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
 
 	return msg, nil
 }
-
-// Create GetBlockHeadersMsg request.
-func EncodeGetBlockHeadersMsg(number, amount, skip uint64, reverse bool) (*Msg, error) {
-	req := Request{
-		ReqID: rand.Uint64(),
-		Data: blockHeadersReq{number, amount, skip, reverse},
-	}
-
-	data, err := rlp.EncodeToBytes(req)
-	if err != nil {
-		return nil, err
-	}
-
-	msg := NewMsg(GetBlockHeadersMsg, data)
-	msg.ReqId = req.ReqID
-
-	return msg, nil
-}
-
-// Parse BlockHeaders response.
-// func NewBlockHeadersMsg(msg Msg) (*blockHeadersRes, error) {
-// 	headers := new(blockHeadersRes)
-
-// 	err := rlp.DecodeBytes(msg.Data, headers)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return headers, nil
-// }
 
 // Parse the transaction message that was sent to us during the broadcast.
 func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
