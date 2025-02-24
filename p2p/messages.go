@@ -79,25 +79,17 @@ type blockHeadersMsg struct {
 	Headers []*block.BlockHeader
 }
 
-type blockBodiesReq struct {
-	Headers []common.Hash
+type blockBodiesMsg struct {
+	ReqID uint64
+	Transactions []*types.Transaction
+	Uncles       []*types.Header
+	Withdrawals  []*types.Withdrawal `rlp:"optional"`
 }
 
 type pooledTransactions struct {
 	Types  []byte
 	Sizes  []uint32
 	Hashes []common.Hash
-}
-
-type BlockBody struct {
-	Transactions []*types.Transaction
-	Uncles       []*types.Header
-	Withdrawals  []*types.Withdrawal `rlp:"optional"`
-}
-
-type blockBodiesRes struct {
-	ReqId   		uint64
-	BlockBodies []BlockBody
 }
 
 // Create GetBlockHeadersMsg request.
@@ -134,7 +126,7 @@ func DecodeBlockHeadersMsg(msg *Msg) ([]*block.BlockHeader, error) {
 func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
 	req := Request{
 		ReqID: rand.Uint64(),
-		Data: blockBodiesReq{headers},
+		Data: headers,
 	}
 
 	data, err := rlp.EncodeToBytes(req)
@@ -147,6 +139,18 @@ func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
 
 	return msg, nil
 }
+
+// Decode BlockBodiesMsg.
+// func BlockBodiesRes(msg Msg) ([]BlockBody, error) {
+// 	res := blockBodiesRes{}
+
+// 	err := rlp.DecodeBytes(msg.Data, &res)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return res.BlockBodies, nil
+// }
 
 // Parse the transaction message that was sent to us during the broadcast.
 func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
@@ -171,17 +175,4 @@ func PooledTransactions(msg Msg) (*pooledTransactions, error) {
 	}
 
 	return pooledTxs, nil
-}
-
-
-
-func BlockBodiesRes(msg Msg) ([]BlockBody, error) {
-	res := blockBodiesRes{}
-
-	err := rlp.DecodeBytes(msg.Data, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.BlockBodies, nil
 }

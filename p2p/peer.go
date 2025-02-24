@@ -34,8 +34,8 @@ func NewPeer(conn *rlpx.Conn) *Peer {
 	}
 }
 
-func (peer *Peer) GetBlockBodiesMsg(headerHashes []common.Hash) error {
-	msg, err := EncodeGetBlockBodiesMsg(headerHashes)
+func (peer *Peer) GetBlockBodiesMsg(hashes []common.Hash) error {
+	msg, err := EncodeGetBlockBodiesMsg(hashes)
 	if err != nil {
 		return err
 	}
