@@ -95,37 +95,19 @@ type BlockBody struct {
 }
 
 // Decode BlockHeadersMsg response.
-func DecodeBlockHeadersMsg(msg *Msg) ([]*block.BlockHeader, error) {
-	headers := new(blockHeadersMsg)
-
-	err := rlp.DecodeBytes(msg.Data, &headers)
-	if err != nil {
-		return nil, err
-	}
-
-	return headers.Headers, nil
+func DecodeBlockHeaders(msg *Msg) ([]*block.BlockHeader, error) {
+	res := new(blockHeadersMsg)
+	return res.Headers, rlp.DecodeBytes(msg.Data, &res)
 }
 
 // Decode BlockBodiesMsg.
-func DecodeBlockBodiesMsg(msg *Msg) ([]*BlockBody, error) {
+func DecodeBlockBodies(msg *Msg) ([]*BlockBody, error) {
 	res := blockBodiesMsg{}
-
-	err := rlp.DecodeBytes(msg.Data, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Bodies, nil
+	return res.Bodies, rlp.DecodeBytes(msg.Data, &res)
 }
 
 // Decode ReceiptsMsg.
-func DecodeReceiptsMsg(msg *Msg) ([][]*types.Receipt, error) {
+func DecodeReceipts(msg *Msg) ([][]*types.Receipt, error) {
 	res := receiptsMsg{}
-
-	err := rlp.DecodeBytes(msg.Data, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Receipts, nil
+	return res.Receipts, rlp.DecodeBytes(msg.Data, &res)
 }

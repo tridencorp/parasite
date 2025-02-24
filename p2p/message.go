@@ -1,6 +1,10 @@
 package p2p
 
-import "github.com/ethereum/go-ethereum/rlp"
+import (
+	"math/rand/v2"
+
+	"github.com/ethereum/go-ethereum/rlp"
+)
 
 // Message sent over the p2p network.
 type Msg struct {
@@ -22,10 +26,22 @@ func NewMsg(code int, data []byte) *Msg {
 }
 
 func EncodeMsg(code int, data any) (*Msg, error) {
-	bytes, err := rlp.EncodeToBytes(data)
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: data,
+	}
+
+	bytes, err := rlp.EncodeToBytes(req)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewMsg(code, bytes), nil
+	msg := NewMsg(code, bytes)
+	msg.ReqId = req.ReqID
+
+	return msg, nil
+}
+
+func DecodeMsg(bytes []byte, dst any) error {
+	return rlp.DecodeBytes(bytes, dst)
 }
