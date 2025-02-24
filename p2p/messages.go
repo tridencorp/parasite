@@ -3,6 +3,7 @@ package p2p
 import (
 	"math/rand/v2"
 	"parasite/block"
+	"parasite/tx"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -81,15 +82,19 @@ type blockHeadersMsg struct {
 
 type blockBodiesMsg struct {
 	ReqID uint64
-	Transactions []*types.Transaction
-	Uncles       []*types.Header
-	Withdrawals  []*types.Withdrawal `rlp:"optional"`
+	Bodies []*BlockBody
 }
 
 type pooledTransactions struct {
 	Types  []byte
 	Sizes  []uint32
 	Hashes []common.Hash
+}
+
+type BlockBody struct {
+	Transactions []*tx.Tx
+	Uncles       []*block.BlockHeader
+	Withdrawals  []*types.Withdrawal `rlp:"optional"`
 }
 
 // Create GetBlockHeadersMsg request.
@@ -141,16 +146,17 @@ func EncodeGetBlockBodiesMsg(headers []common.Hash) (*Msg, error) {
 }
 
 // Decode BlockBodiesMsg.
-// func BlockBodiesRes(msg Msg) ([]BlockBody, error) {
-// 	res := blockBodiesRes{}
+func DecodeBlockBodiesMsg(msg *Msg) ([]*BlockBody, error) {
+	res := blockBodiesMsg{}
 
-// 	err := rlp.DecodeBytes(msg.Data, &res)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	err := rlp.DecodeBytes(msg.Data, &res)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return res.BlockBodies, nil
-// }
+	return res.Bodies, nil
+}
+
 
 // Parse the transaction message that was sent to us during the broadcast.
 func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {

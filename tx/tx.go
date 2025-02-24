@@ -1,6 +1,7 @@
 package tx
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -37,38 +38,41 @@ func (tx *Tx) To()       *common.Address { return tx.tx.to() }
 func (tx *Tx) Value()    *big.Int        { return tx.tx.value() }
 func (tx *Tx) Data()     []byte          { return tx.tx.data() }
 
-func Decode(raw []byte) (*Tx, error) {
-	tx := new(Tx)
-	
-	// Check if we have LegacyTx.
-	if IsList(raw) {
-		legacy := new(Legacy)
-		err := rlp.DecodeBytes(raw, legacy)
-		if err != nil {
-			return nil, nil
-		}
-		tx.tx = legacy	
-		return tx, nil
+func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
+	kind, size, err := stream.Kind()
+	if err != nil {
+		return err
 	}
 
-	// No LegacyTx, other types.
-	data := []byte{}
-	rlp.DecodeBytes(raw, &data)
+	if kind == rlp.Byte { 
+		return fmt.Errorf("another stupid rlp error")
+	}
 	
-	if data[0] == 2 {
+	if kind == rlp.List {
+		legacy := new(Legacy)
+		stream.Decode(legacy)
+		tx.tx = legacy
+		return nil
+	}
+
+	buf := make([]byte, size)
+	stream.ReadBytes(buf)
+
+	// Not LegacyTx, check other types.
+	if buf[0] == 2 {
 		// Remove type byte.
-		data = data[1:] 
+		buf = buf[1:] 
 	
 		dynamic := new(DynamicFee)
-		err := rlp.DecodeBytes(data, dynamic)
+		err := rlp.DecodeBytes(buf, dynamic)
 		if err != nil {
-			return nil, nil
+			return nil
 		}
-
 		tx.tx = dynamic
-		return tx, nil
+		return nil
 	}
-	return nil, nil
+
+	return nil
 }
 
 // Because of crappy ethereum transaction encoding/decoding,
