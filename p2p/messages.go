@@ -65,13 +65,10 @@ var DiscReasons = []string{
 // Block headers
 
 type blockHeadersReq struct {
-	ReqId 	uint64
-	Request struct {
-		Number  uint64
-		Amount  uint64
-		Skip    uint64
-		Reverse bool
-	}
+	Number  uint64
+	Amount  uint64
+	Skip    uint64
+	Reverse bool
 }
 
 type Request struct {
@@ -98,21 +95,11 @@ func TransactionsMsgReq(msg *Msg) (*[]types.Transaction, error) {
 	return txs, err
 }
 
-// Create BlockHeaders request message.
-func BlockHeadersReqMsg(number, amount, skip uint64, reverse bool) (Msg, error) {
-	req := blockHeadersReq{
-		ReqId: rand.Uint64(),
-		Request: struct {
-			Number  uint64
-			Amount  uint64
-			Skip    uint64
-			Reverse bool
-		}{
-			Number:  number,
-			Amount:  amount,
-			Skip:    skip,
-			Reverse: false,
-		},
+// Create GetBlockHeadersMsg request.
+func EncodeGetBlockHeadersMsg(number, amount, skip uint64, reverse bool) (Msg, error) {
+	req := Request{
+		ReqID: rand.Uint64(),
+		Data: blockHeadersReq{number, amount, skip, reverse},
 	}
 
 	data, err := rlp.EncodeToBytes(req)
@@ -121,13 +108,13 @@ func BlockHeadersReqMsg(number, amount, skip uint64, reverse bool) (Msg, error) 
 	}
 
 	msg := NewMsg(GetBlockHeadersMsg, data)
-	msg.ReqId = req.ReqId
+	msg.ReqId = req.ReqID
 
 	return msg, nil
 }
 
 // Parse BlockHeaders response.
-func BlockHeadersRes(msg Msg) (*blockHeadersRes, error) {
+func NewBlockHeadersMsg(msg Msg) (*blockHeadersRes, error) {
 	headers := new(blockHeadersRes)
 
 	err := rlp.DecodeBytes(msg.Data, headers)
