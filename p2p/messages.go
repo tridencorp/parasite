@@ -1,11 +1,9 @@
 package p2p
 
 import (
-	"parasite/block"
 	"parasite/tx"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -69,7 +67,7 @@ type getBlockHeadersMsg struct {
 
 type blockHeadersMsg struct {
 	ReqID uint64
-	Headers []*block.BlockHeader
+	Headers []*BlockHeader
 }
 
 type blockBodiesMsg struct {
@@ -90,12 +88,12 @@ type pooledTransactions struct {
 
 type BlockBody struct {
 	Transactions []*tx.Tx
-	Uncles       []*block.BlockHeader
-	Withdrawals  []*types.Withdrawal `rlp:"optional"`
+	Uncles       []*BlockHeader
+	Withdrawals  []*tx.Withdrawal `rlp:"optional"`
 }
 
 // Decode BlockHeadersMsg response.
-func DecodeBlockHeaders(msg *Msg) ([]*block.BlockHeader, error) {
+func DecodeBlockHeaders(msg *Msg) ([]*BlockHeader, error) {
 	res := new(blockHeadersMsg)
 	return res.Headers, rlp.DecodeBytes(msg.Data, &res)
 }

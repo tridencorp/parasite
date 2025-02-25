@@ -9,24 +9,24 @@ import (
 type AccessList []AccessTuple
 
 type AccessTuple struct {
-	Address     common.Address `json:"address"`
-	StorageKeys []common.Hash  `json:"storageKeys"`
+	Address     common.Address
+	StorageKeys []common.Hash 
 }
 
 type DynamicFee struct {
 	ChainID    *big.Int
 	Nonce      uint64
-	GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
-	GasFeeCap  *big.Int // a.k.a. maxFeePerGas
+	GasTipCap  *big.Int
+	GasFeeCap  *big.Int
 	Gas        uint64
-	To         *common.Address `rlp:"nil"` // nil means contract creation
+	To         *common.Address `rlp:"nil"`
 	Value      *big.Int
 	Data       []byte
 	AccessList AccessList
 
-	V *big.Int `json:"v"`
-	R *big.Int `json:"r"`
-	S *big.Int `json:"s"`
+	V *big.Int
+	R *big.Int
+	S *big.Int
 }
 
 func (tx *DynamicFee) nonce()    uint64          { return tx.Nonce }

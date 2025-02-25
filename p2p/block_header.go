@@ -1,7 +1,8 @@
-package block
+package p2p
 
 import (
 	"math/big"
+	"parasite/tx"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -48,6 +49,6 @@ func (header *BlockHeader) Hash() (common.Hash, error) {
 
 type Block struct {
 	BlockHeader
-	Transactions []any `json:"transactions"`
-	Uncles       []any `json:"uncles"`
+	Transactions []tx.Transaction `json:"transactions"`
+	Uncles       []common.Hash    `json:"uncles"`
 }

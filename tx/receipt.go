@@ -11,20 +11,27 @@ const BloomByteLength = 256
 type Bloom [BloomByteLength]byte
 
 type Receipt struct {
-	Type              uint8  `json:"type,omitempty"`
-	PostState         []byte `json:"root"`
-	Status            uint64 `json:"status"`
-	CumulativeGasUsed uint64 `json:"cumulativeGasUsed"`
-	Bloom             Bloom  `json:"logsBloom"`
-	Logs              []byte `json:"logs"`
+	Type              uint8 
+	PostState         []byte
+	Status            uint64
+	CumulativeGasUsed uint64
+	Bloom             Bloom 
+	Logs              []byte
 
-	TxHash            common.Hash    `json:"transactionHash"`
-	ContractAddress   common.Address `json:"contractAddress"`
-	GasUsed           uint64         `json:"gasUsed"`
-	EffectiveGasPrice *big.Int       `json:"effectiveGasPrice"`
-	BlobGasUsed       uint64         `json:"blobGasUsed,omitempty"`
-	BlobGasPrice      *big.Int       `json:"blobGasPrice,omitempty"`
-	BlockHash         common.Hash    `json:"blockHash,omitempty"`
-	BlockNumber       *big.Int       `json:"blockNumber,omitempty"`
-	TransactionIndex  uint           `json:"transactionIndex"`
+	TxHash            common.Hash
+	ContractAddress   common.Address
+	GasUsed           uint64
+	EffectiveGasPrice *big.Int
+	BlobGasUsed       uint64
+	BlobGasPrice      *big.Int
+	BlockHash         common.Hash
+	BlockNumber       *big.Int   
+	TransactionIndex  uint      
+}
+
+type Withdrawal struct {
+	Index     uint64        
+	Validator uint64        
+	Address   common.Address
+	Amount    uint64        
 }
