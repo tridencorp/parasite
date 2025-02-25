@@ -17,7 +17,6 @@ type Transaction interface {
 	data() 		 []byte
 }
 
-
 const (
 	LegacyTxType     = 0x00
 	AccessListTxType = 0x01
@@ -47,7 +46,7 @@ func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 	if kind == rlp.Byte { 
 		return fmt.Errorf("another stupid rlp error")
 	}
-	
+
 	if kind == rlp.List {
 		legacy := new(Legacy)
 		stream.Decode(legacy)
@@ -59,10 +58,10 @@ func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 	stream.ReadBytes(buf)
 
 	// Not LegacyTx, check other types.
-	if buf[0] == 2 {
+	if buf[0] == DynamicFeeTxType {
 		// Remove type byte.
 		buf = buf[1:] 
-	
+
 		dynamic := new(DynamicFee)
 		err := rlp.DecodeBytes(buf, dynamic)
 		if err != nil {
@@ -72,7 +71,7 @@ func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 		return nil
 	}
 
-	return nil
+	return fmt.Errorf("!!! Unknown Tx type !!!")
 }
 
 // Because of crappy ethereum transaction encoding/decoding,

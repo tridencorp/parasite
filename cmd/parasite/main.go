@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"os"
 	"parasite/config"
-	"parasite/key"
 	"parasite/log"
-	"parasite/p2p"
-	"parasite/server"
 )
 
 func main() {
@@ -28,23 +25,6 @@ func main() {
 
   // Starting log. All logs will go to it.
   go log.Start()
-  
-  srcPrv, err := key.Private()
-  if err != nil {
-    fmt.Print(err)
-  }
-
-	// !!! TESTING PLAYGROUND !!!
-	dispatcher := server.NewDispatcher()
-	peerHub    := p2p.NewPeerHub(nodes, dispatcher, srcPrv)
-
-	peerHub.ConnectAll()
-	go peerHub.Start()
-
-  // for _ = range handler {
-  //   fmt.Println("!!! got headers via handler !!!")
-  //   // fmt.Printf("msg: %v", msg)
-  // }
 
   // Let's wait indefinitely for now.
   dummy := make(chan bool)

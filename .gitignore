@@ -13,3 +13,5 @@ main
 
 # just for now
 eth_nodes.json
+
+p2p/nodes.txt

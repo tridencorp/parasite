@@ -183,7 +183,7 @@ func Discover() {
 				continue
 			}
 
-			res, hash, err := node.Findnode()
+			res, hash, err := node.Ping()
 			if err != nil {
 				fmt.Println(err)
 				node.Conn.Close()

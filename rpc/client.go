@@ -23,7 +23,7 @@ func (node *Node) GasPrice(res *hexutil.Uint64) error {
 
 // Return code at a given address.
 func (node *Node) GetCode(res *hexutil.Bytes, address string) error {
-  return  node.Send("eth_getCode", res, []any{address, "latest"})
+  return node.Send("eth_getCode", res, []any{address, "latest"})
 }
 
 // Return block by given number.

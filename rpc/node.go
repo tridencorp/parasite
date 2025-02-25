@@ -9,7 +9,7 @@ import (
 )
 
 type Node struct {
-	Address string
+  Address string
 }
 
 type Request struct {

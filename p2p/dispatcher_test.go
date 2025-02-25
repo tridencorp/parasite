@@ -19,8 +19,8 @@ func TestMessageDispatch(t *testing.T) {
 
 	tests := []struct {
 		name 	   string
-		message  Msg
-		expected Msg
+		message  *Msg
+		expected *Msg
 	}{
 		{ name: "BlockHeadersMsg",    message: msg1, expected: msg1},
 		{ name: "TransactionsMsg",    message: msg3, expected: msg3},
@@ -32,7 +32,8 @@ func TestMessageDispatch(t *testing.T) {
 		{ name: "NewPooledTransactionHashesMsg", message: msg9, expected: msg9},
 	}
 
-	dispatcher := NewDispatcher()
+	response, failure := make(chan *Msg), make(chan *Msg)
+	dispatcher := NewDispatcher(response, failure)
 	handler, _ := dispatcher.Channels()
 
 	for _, test := range tests {

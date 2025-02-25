@@ -6,22 +6,22 @@ import (
 
 // Dispatcher interface. It should dispatch messages to proper handlers.
 type Dispatcher interface {
-	Channels() (chan Msg, chan Msg)
-	Dispatch(peer *Peer, msg Msg)
+	Channels() (chan *Msg, chan *Msg)
+	Dispatch(peer *Peer, msg *Msg)
 }
 
 // Dispatching received messages to designated handlers.
 type MsgDispatcher struct {
-	Handler chan Msg
-	Failure chan Msg
+	Handler chan *Msg
+	Failure chan *Msg
 }
 
 // Create new Dispatcher.
-func NewDispatcher(response, failure chan Msg) *MsgDispatcher {
+func NewDispatcher(response, failure chan *Msg) *MsgDispatcher {
 	return &MsgDispatcher{response, failure}
 }
 
-func (dispatcher *MsgDispatcher) Channels() (chan Msg, chan Msg){
+func (dispatcher *MsgDispatcher) Channels() (chan *Msg, chan *Msg){
 	return dispatcher.Handler, dispatcher.Failure
 }
 
@@ -29,7 +29,7 @@ func (dispatcher *MsgDispatcher) Channels() (chan Msg, chan Msg){
 // It uses 2 channels: one for normal message handling and another one 
 // for sending errors.
 // Dispatcher is called by peer each time new message arrives.
-func (dispatcher *MsgDispatcher) Dispatch(peer *Peer, msg Msg) { 
+func (dispatcher *MsgDispatcher) Dispatch(peer *Peer, msg *Msg) { 
 	if msg.Code == PingMsg {
 		peer.Send(NewMsg(PongMsg, []byte{}))
 		return

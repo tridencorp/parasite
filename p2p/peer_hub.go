@@ -15,14 +15,14 @@ type PeerHub struct {
 	// Failure channel, on which errors from peers are received.
 	// Based on the message type PeerHub will decide what to do,
 	// ex: disconnect, reconnect, ...
-	failure chan Msg
+	failure chan *Msg
 
 	// Main dispatcher for handling peer messages.
 	dispatcher Dispatcher
 }
 
 func NewPeerHub(peerList []string, prv *ecdsa.PrivateKey) *PeerHub {
-	response, failure := make(chan Msg), make(chan Msg) 
+	response, failure := make(chan *Msg), make(chan *Msg) 
 	dispatcher := NewDispatcher(response, failure) 
 
 	return &PeerHub{
