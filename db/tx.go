@@ -21,11 +21,10 @@ type Tx struct {
 	BlockNumber       *big.Int
 
 	GasUsed           uint64
-	EffectiveGasPrice big.Int
+	GasPrice          *big.Int
 	CumulativeGasUsed uint64
 	Gas               uint64
 	GasTipCap         *big.Int
-	GasFeeCap         *big.Int
 	V, R, S           *big.Int
 
 	Data []byte

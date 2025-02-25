@@ -3,6 +3,7 @@ package tx
 import (
 	"fmt"
 	"math/big"
+	"parasite/db"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -28,6 +29,7 @@ const (
 // Will be simplified.
 type Tx struct {
 	tx Transaction
+	db db.Tx
 }
 
 func (tx *Tx) Nonce()    uint64          { return tx.tx.nonce() }
@@ -40,17 +42,35 @@ func (tx *Tx) Data()     []byte          { return tx.tx.data() }
 func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 	kind, size, err := stream.Kind()
 	if err != nil {
-		return err
+		return err 
 	}
-
+	
 	if kind == rlp.Byte { 
 		return fmt.Errorf("another stupid rlp error")
 	}
 
 	if kind == rlp.List {
 		legacy := new(Legacy)
-		stream.Decode(legacy)
+
+		err := stream.Decode(legacy)
+		if err != nil {
+			return err
+		}
+
+		dbTx := db.Tx{}
+		dbTx.Type     = LegacyTxType
+		dbTx.To       = legacy.To
+		dbTx.Nonce    = legacy.Nonce
+		dbTx.GasPrice = legacy.GasPrice
+		dbTx.Gas      = legacy.Gas
+		dbTx.Value    = legacy.Value
+		dbTx.Data     = legacy.Data
+		dbTx.V        = legacy.V
+		dbTx.R        = legacy.R
+		dbTx.S        = legacy.S
+		
 		tx.tx = legacy
+		tx.db = dbTx
 		return nil
 	}
 
@@ -60,14 +80,30 @@ func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 	// Not LegacyTx, check other types.
 	if buf[0] == DynamicFeeTxType {
 		// Remove type byte.
-		buf = buf[1:] 
+		buf = buf[1:]
 
 		dynamic := new(DynamicFee)
 		err := rlp.DecodeBytes(buf, dynamic)
 		if err != nil {
 			return nil
 		}
+
+		dbTx := db.Tx{}
+		dbTx.Type      = DynamicFeeTxType
+		dbTx.To        = dynamic.To
+		dbTx.Nonce     = dynamic.Nonce
+		dbTx.ChainID   = dynamic.ChainID
+		dbTx.GasPrice  = dynamic.GasFeeCap
+		dbTx.GasTipCap = dynamic.GasTipCap
+		dbTx.Gas       = dynamic.Gas
+		dbTx.Value     = dynamic.Value
+		dbTx.Data      = dynamic.Data
+		dbTx.V         = dynamic.V
+		dbTx.R         = dynamic.R
+		dbTx.S         = dynamic.S
+
 		tx.tx = dynamic
+		tx.db = dbTx
 		return nil
 	}
 

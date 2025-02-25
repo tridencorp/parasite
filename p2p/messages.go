@@ -95,17 +95,17 @@ type BlockBody struct {
 // Decode BlockHeadersMsg response.
 func DecodeBlockHeaders(msg *Msg) ([]*BlockHeader, error) {
 	res := new(blockHeadersMsg)
-	return res.Headers, rlp.DecodeBytes(msg.Data, &res)
+	return res.Headers, rlp.DecodeBytes(msg.Data, res)
 }
 
 // Decode BlockBodiesMsg.
 func DecodeBlockBodies(msg *Msg) ([]*BlockBody, error) {
-	res := blockBodiesMsg{}
-	return res.Bodies, rlp.DecodeBytes(msg.Data, &res)
+	res := new(blockBodiesMsg)
+	return res.Bodies, rlp.DecodeBytes(msg.Data, res)
 }
 
 // Decode ReceiptsMsg.
 func DecodeReceipts(msg *Msg) ([][]*tx.Receipt, error) {
-	res := receiptsMsg{}
-	return res.Receipts, rlp.DecodeBytes(msg.Data, &res)
+	res := new(receiptsMsg)
+	return res.Receipts, rlp.DecodeBytes(msg.Data, res)
 }

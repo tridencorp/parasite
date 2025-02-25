@@ -28,7 +28,7 @@ func main() {
 
   // Let's wait indefinitely for now.
   dummy := make(chan bool)
-  <- dummy 
+  <- dummy
 }
 
 func displayLogo(file string) error {

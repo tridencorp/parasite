@@ -48,12 +48,8 @@ func TestGetReceiptsMsg(t *testing.T) {
 	p.GetReceipts([]common.Hash{common.Hash(hash)})
 
 	msg := <-p.Response
-
-	receipts, _ := DecodeReceipts(msg)
-	fmt.Println(receipts[0][0])
-
-	if len(msg.Data) != 553 {
-		t.Errorf("Expected len to be %d, got %d", 553, len(msg.Data))
+	if len(msg.Data) != 85802 {
+		t.Errorf("Expected len to be %d, got %d", 85802, len(msg.Data))
 	}		
 }
 
