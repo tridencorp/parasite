@@ -27,10 +27,10 @@ type BlockHeader struct {
 	Extra       []byte         `json:"extraData"`
 	MixDigest   common.Hash    `json:"mixHash"`
 	Nonce       BlockNonce     `json:"nonce"`
-	
-	BaseFee          *big.Int 	  `json:"baseFeePerGas"         rlp:"optional"`
+
+	BaseFee          *big.Int     `json:"baseFeePerGas"         rlp:"optional"`
 	WithdrawalsHash  *common.Hash `json:"withdrawalsRoot"       rlp:"optional"`
-	BlobGasUsed      *uint64 		  `json:"blobGasUsed"           rlp:"optional"`
+	BlobGasUsed      *uint64      `json:"blobGasUsed"           rlp:"optional"`
 	ExcessBlobGas    *uint64      `json:"excessBlobGas"         rlp:"optional"`
 	ParentBeaconRoot *common.Hash `json:"parentBeaconBlockRoot" rlp:"optional"`
 	RequestsHash     *common.Hash `json:"requestsHash"          rlp:"optional"`

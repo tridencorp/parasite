@@ -28,7 +28,7 @@ func TestGetBlockHeadersMsg(t *testing.T) {
 	if len(msg.Data) != 553 {
 		t.Errorf("Expected len to be %d, got %d", 553, len(msg.Data))
 	}	
-	
+
 	headers, _ := DecodeBlockHeaders(msg)
 	fmt.Println(headers[0])
 
@@ -78,12 +78,8 @@ func TestGetBlockBodies(t *testing.T) {
 		t.Errorf("Expected len to be %d, got %d", 120, len(bodies[0].Transactions))
 	}
 
-	// for i, _ := range bodies[0].Transactions {
-	// 	fmt.Println(i)
-	// } 
-
 	// data, _ := rlp.EncodeToBytes(bodies[0].Transactions[0])
-	// raw := (hex.EncodeToString(data))
+	// raw := hex.EncodeToString(data)
 	// fmt.Println(raw)
 
 	// DynamicFee Tx
@@ -94,8 +90,10 @@ func TestGetBlockBodies(t *testing.T) {
 	transaction := new(tx.Tx)
 
 	transaction.DecodeRLP(rlp.NewStream(buf, 100_000))
-	fmt.Println(transaction.To())
-	fmt.Println(bodies[0].Transactions[0].To())
+
+	if !bytes.Equal(transaction.To()[:], bodies[0].Transactions[0].To()[:]) {
+		t.Errorf("Expected address\nto be %v, \ngot   %v", transaction.To()[:], bodies[0].Transactions[0].To()[:])
+	}		
 
 	// Legacy txest 
 	legacyTx := "f8aa80850c5d5bd85083019a2894dac17f958d2ee523a2206206994597c13d831ec780b844a9059cbb000000000000000000000000f5614b68d6a1503ba5e52e40189a3998842143e70000000000000000000000000000000000000000000000000000000134c0870026a08595e6b5355d5893572d2e0af7da6c187f93fe56f7c2888a025e9c1e515cee31a025a96fbc30204053d9aa9bb9690e9fd051e1df7fb8f85c45b88abdc7a8ef8f2a"
@@ -105,6 +103,8 @@ func TestGetBlockBodies(t *testing.T) {
 	transaction = new(tx.Tx)
 
 	transaction.DecodeRLP(rlp.NewStream(buf, 100_000))
-	fmt.Println(transaction.To())
-	fmt.Println(bodies[0].Transactions[10].To())
+
+	if !bytes.Equal(transaction.To()[:], bodies[0].Transactions[10].To()[:]) {
+		t.Errorf("Expected address\nto be %v, \ngot   %v", transaction.To()[:], bodies[0].Transactions[10].To()[:])
+	}		
 }

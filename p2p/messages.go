@@ -79,7 +79,7 @@ type blockBodiesMsg struct {
 
 type receiptsMsg struct {
 	ReqID uint64
-	Receipts [][]*types.Receipt
+	Receipts [][]*tx.Receipt
 }
 
 type pooledTransactions struct {
@@ -107,7 +107,7 @@ func DecodeBlockBodies(msg *Msg) ([]*BlockBody, error) {
 }
 
 // Decode ReceiptsMsg.
-func DecodeReceipts(msg *Msg) ([][]*types.Receipt, error) {
+func DecodeReceipts(msg *Msg) ([][]*tx.Receipt, error) {
 	res := receiptsMsg{}
 	return res.Receipts, rlp.DecodeBytes(msg.Data, &res)
 }
