@@ -73,13 +73,3 @@ func (tx *Tx) DecodeRLP(stream *rlp.Stream) error {
 
 	return fmt.Errorf("!!! Unknown Tx type !!!")
 }
-
-// Because of crappy ethereum transaction encoding/decoding,
-// to detect Legact Transactions we must check if rlp encoding
-// is a list. For other types we just check type.
-func IsList(raw []byte) bool {
-	// TODO: double check this condition. RLP list encoding
-	// should begin with 0xc0-0xff prefix.
-	if raw[0] >= 192 && raw[0] <= 255 { return true }
-	return false
-}
