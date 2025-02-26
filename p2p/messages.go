@@ -109,3 +109,18 @@ func DecodeReceipts(msg *Msg) ([][]*tx.Receipt, error) {
 	res := new(receiptsMsg)
 	return res.Receipts, rlp.DecodeBytes(msg.Data, res)
 }
+
+// Create GetBlockBodies message.
+func GetBlockBodies(headers []common.Hash) (*Msg, error) {
+  return EncodeMsg(GetBlockBodiesMsg, headers)
+}
+
+// Create GetReceiptsMsg message.
+func GetReceipts(hashes []common.Hash) (*Msg, error) {
+  return EncodeMsg(GetReceiptsMsg, hashes)
+}
+
+// Create GetBlockHeadersMsg message.
+func GetBlockHeaders(number, amount uint64) (*Msg, error) {
+  return EncodeMsg(GetBlockHeadersMsg, getBlockHeadersMsg{number, amount, 0, false})
+}
