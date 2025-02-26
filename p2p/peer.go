@@ -3,17 +3,22 @@ package p2p
 import (
 	"parasite/log"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/p2p/rlpx"
 )
+
+// Small interface for sending messages.
+// TODO: this could also go to msg package.
+type Sender interface {
+	Send(msg *Msg)
+}
 
 // Main struct handling P2P communication.
 type Peer struct {
 	conn     *rlpx.Conn
 	messages chan *Msg
 
-	Response chan *Msg // Default channel to which we will send the response.
-	Failure  chan *Msg // Default channel to which we will send the failures.
+	Response chan *Msg // Default channel to which we will send response.
+	Failure  chan *Msg // Default channel to which we will send failures.
 
 	// Track requested messages so we can verify if
 	// an incoming message is the one we requested.
@@ -32,36 +37,6 @@ func NewPeer(conn *rlpx.Conn) *Peer {
 		messages: make(chan *Msg, 100),
 		RequestedMsgs: make(map[uint64]*Msg),
 	}
-}
-
-func (peer *Peer) GetBlockBodies(hashes []common.Hash) error {
-	msg, err := EncodeMsg(GetBlockBodiesMsg, hashes)
-	if err != nil {
-		return err
-	}
-
-	peer.Send(msg)
-	return nil
-}
-
-func (peer *Peer) GetReceipts(hashes []common.Hash) error {
-	msg, err := EncodeMsg(GetReceiptsMsg, hashes)
-	if err != nil {
-		return err
-	}
-
-	peer.Send(msg)
-	return nil
-}
-
-func (peer *Peer) GetBlockHeaders(number, amount uint64) error {
-	msg, err := EncodeMsg(GetBlockHeadersMsg, getBlockHeadersMsg{number, amount, 0, false})
-	if err != nil {
-		return err
-	}
-
-	peer.Send(msg)
-	return nil
 }
 
 // Start writer and reader goroutines.

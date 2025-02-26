@@ -22,9 +22,10 @@ func TestGetBlockHeadersMsg(t *testing.T) {
 	p.Start()
 	defer p.Close()
 
-	p.GetBlockHeaders(14_678_700, 1)
+	msg, _ := GetBlockHeaders(14_678_700, 1)
+	p.Send(msg)
 
-	msg := <-p.Response
+	msg = <-p.Response
 	if len(msg.Data) != 553 {
 		t.Errorf("Expected len to be %d, got %d", 553, len(msg.Data))
 	}	
@@ -45,9 +46,10 @@ func TestGetReceiptsMsg(t *testing.T) {
 	defer p.Close()
 
 	hash, _ := hex.DecodeString(BlockHash)
-	p.GetReceipts([]common.Hash{common.Hash(hash)})
+	msg, _ := GetReceipts([]common.Hash{common.Hash(hash)})
+	p.Send(msg)
 
-	msg := <-p.Response
+	msg = <-p.Response
 	if len(msg.Data) != 85802 {
 		t.Errorf("Expected len to be %d, got %d", 85802, len(msg.Data))
 	}		
@@ -59,16 +61,17 @@ func TestGetBlockBodies(t *testing.T) {
 	defer p.Close()
 
 	hash, _ := hex.DecodeString(BlockHash)
-	p.GetBlockBodies([]common.Hash{common.Hash(hash)})
+	msg, _ := GetBlockBodies([]common.Hash{common.Hash(hash)})
+	p.Send(msg)
 
-	msg := <-p.Response
+	msg = <-p.Response
 
 	if len(msg.Data) != 50543 {
 		t.Errorf("Expected len to be %d, got %d", 50543, len(msg.Data))
 	}
 	
 	bodies, _ := DecodeBlockBodies(msg)
-	fmt.Println(bodies)
+	fmt.Println(bodies[0])
 
 	if len(bodies[0].Transactions) != 120 {
 		t.Errorf("Expected len to be %d, got %d", 120, len(bodies[0].Transactions))
