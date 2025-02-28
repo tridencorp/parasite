@@ -3,8 +3,6 @@ package fetchers
 import (
 	"fmt"
 	"parasite/p2p"
-
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // Fetchers are responsible for fetching and validating data from peers.
@@ -19,15 +17,21 @@ import (
 // | PEER | ---Response--> | FETCHER | <---Handler---> | HANDLER |
 // +------+                +---------+                 +---------+
 //
-type Fetcher[Sender p2p.Sender] struct {
+type Fetcher[T p2p.Sender] struct {
 	PeerCount  uint8
 	MatchCount uint8
 
 	// Peers to which we will send requests. Require 'Send' function.
-	Peers []Sender
+	Peers []T
 
-	Response chan *p2p.Msg // Response from peer.
-	Handler  chan any      // Handler to which we will send validated data.
+	PeerRes chan *p2p.Msg // Response from peer.
+
+	HandlerReq  chan *p2p.Msg // Request from handler.
+	HandlerRes  chan *p2p.Msg // Response for handler.
+
+  // Custom fetchers must implement these functions.
+  Message  func(params any) *p2p.Msg
+  Validate func(msgs []*p2p.Msg) (*p2p.Msg, error)
 }
 
 func NewFetcher[T p2p.Sender](peerCount, matchCount uint8, peers []T) *Fetcher[T] {
@@ -35,20 +39,23 @@ func NewFetcher[T p2p.Sender](peerCount, matchCount uint8, peers []T) *Fetcher[T
 		PeerCount:  peerCount,
 		MatchCount: matchCount,
 		Peers:      peers,
-		Response:   make(chan *p2p.Msg, 10),
-		Handler:    make(chan any, 10), 
+		PeerRes:    make(chan *p2p.Msg, 10),
+		HandlerRes: make(chan *p2p.Msg, 10), 
+		HandlerReq: make(chan *p2p.Msg, 10), 
 	}
 }
 
-func (fetcher *Fetcher[T]) FetchBlockHeaders(numbers []uint64) {
-  // Send request to peers and set handler to this fetcher.
-  for _, peer := range fetcher.Peers {
-    msg, _ := p2p.GetBlockHeaders(14_678_700, 1)
-    msg.Handler = fetcher.Response
+func (fetcher *Fetcher[T]) FetchBlockHeaders(number uint64) {
+  // Prepare message using Message callback.
+  params := uint64(0)
+  msg := fetcher.Message(params)
+  msg.Handler = fetcher.PeerRes
 
+  // Send message to peers.
+  for _, peer := range fetcher.Peers {
     peer.Send(msg)
   }
-
+      
   // Collect messages.
   msgs, err := fetcher.collectMessages()
   if err != nil {
@@ -56,14 +63,12 @@ func (fetcher *Fetcher[T]) FetchBlockHeaders(numbers []uint64) {
   }
 
   // Validate response.
-  headers, err := fetcher.validateHeaders(msgs)
+  headers, err := fetcher.Validate(msgs)
   if err != nil {
     fmt.Println(err)
-    // Data is not valid.
-    // TODO: send error response to handler.
   }
 
-  fetcher.Handler <- headers
+  fetcher.HandlerRes <- &p2p.Msg{Payload: headers}
 }
 
 // Collecting responses.
@@ -72,42 +77,11 @@ func (fetcher *Fetcher[T]) collectMessages() ([]*p2p.Msg, error) {
 
   for {
     select {
-    case msg := <-fetcher.Response:
+    case msg := <-fetcher.PeerRes:
       msgs = append(msgs, msg)
       if len(msgs) == int(fetcher.PeerCount) {
         return msgs, nil
       }
     }
   }
-}
-
-// We are verifying whether the header hash is the same across
-// all responses received from peers.
-func (fetcher *Fetcher[Sender]) validateHeaders(msgs []*p2p.Msg) ([]*p2p.BlockHeader, error) {
-  expected := []*p2p.BlockHeader{}
-
-  for i, msg := range msgs {
-    headers := []*p2p.BlockHeader{}
-    err := rlp.DecodeBytes(msg.Data, &headers)
-    if err != nil {
-      return nil, err
-    }
-
-    // Initial setup. First header will be our reference point.
-    if i == 0 {
-      expected = headers
-      continue
-    }
-
-    // Go through all sub headers.
-    for i, hh := range headers {
-      if hh.Hash() != expected[i].Hash() {
-        return nil, fmt.Errorf("Block headers do not match")
-      }
-    }
-
-    expected = headers
-  }
-
-  return expected, nil
 }
