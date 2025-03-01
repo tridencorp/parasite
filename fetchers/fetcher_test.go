@@ -1,7 +1,7 @@
 package fetchers
 
 import (
-	"fmt"
+	"bytes"
 	"parasite/p2p"
 	"parasite/test"
 	"testing"
@@ -13,7 +13,7 @@ import (
 func TestFetchBlockHeaders(t *testing.T) {
 	// Test with valid response from all peers.
 	headers := test.Headers(1)
-	data     := []any{uint64(1), headers}
+	data    := []any{uint64(1), headers}
 	req, _  := rlp.EncodeToBytes(data)
 
 	in  := make(chan *p2p.Msg, 10)
@@ -31,5 +31,11 @@ func TestFetchBlockHeaders(t *testing.T) {
 
 	go f.Fetch(uint64(0), uint64(1))
 	res := <- f.Output
-	fmt.Println(res[0])
+
+	expected := headers[0].Hash().Bytes()
+	got      := res[0].Hash().Bytes()
+
+	if !bytes.Equal(expected, got) {
+		t.Errorf("Expected headers\nto be %v,\n  got %v", expected, got)
+	}
 }

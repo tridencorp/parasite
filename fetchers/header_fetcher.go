@@ -9,11 +9,11 @@ type HeaderFetcher struct {
 	Fetcher[[]*p2p.BlockHeader]
 }
 
-func NewHeaderFetcher(in chan *p2p.Msg, out chan []*p2p.BlockHeader) *HeaderFetcher {
+func NewHeaderFetcher(input chan *p2p.Msg, output chan []*p2p.BlockHeader) *HeaderFetcher {
 	fetcher := new(HeaderFetcher)
 
-	fetcher.Input    = make(chan *p2p.Msg, 10)
-	fetcher.Output   = out
+	fetcher.Input    = input
+	fetcher.Output   = output
 	fetcher.Validate = fetcher.validate
 	fetcher.Request  = fetcher.request
 
@@ -25,7 +25,7 @@ func (fetcher *HeaderFetcher) validate(msgs []*p2p.Msg) ([]*p2p.BlockHeader, err
 
   for i, msg := range msgs {
 		headers, _ := p2p.DecodeBlockHeaders(msg)
-		
+
     // Initial setup. First header will be our reference point.
     if i == 0 {
       expected = headers
