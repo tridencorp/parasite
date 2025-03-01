@@ -11,75 +11,62 @@ import (
 // sure that the data we receive is valid. We must cross-check it with other peers,
 // and this will be the fetcher's job.
 //
-// Data flow (channels):
+// Data flow between peer, fetcher and handler.
 //
-// +------+                +---------+                 +---------+
-// | PEER | ---Response--> | FETCHER | <---Handler---> | HANDLER |
-// +------+                +---------+                 +---------+
-//
-type Fetcher[T p2p.Sender] struct {
-	PeerCount  uint8
-	MatchCount uint8
+//    +--------Send()--------+
+//    V                      |
+// +------+             +---------+ <---Input---- +---------+
+// | PEER | ---Input--> | FETCHER |               | HANDLER |
+// +------+             +---------+ ---Output---> +---------+
 
-	// Peers to which we will send requests. Require 'Send' function.
-	Peers []T
+type Fetcher[T any] struct {
+	Input  chan *p2p.Msg // Response from peer, requests from handler.
+  Output chan T        // Response for handler.
 
-	PeerRes chan *p2p.Msg // Response from peer.
+  Peers []p2p.Sender
 
-	HandlerReq  chan *p2p.Msg // Request from handler.
-	HandlerRes  chan *p2p.Msg // Response for handler.
-
-  // Custom fetchers must implement these functions.
-  Message  func(params any) *p2p.Msg
-  Validate func(msgs []*p2p.Msg) (*p2p.Msg, error)
+  // Callbacks.
+  Validate func(msgs []*p2p.Msg) (T, error)
+  Request  func(args ...any) *p2p.Msg
 }
 
-func NewFetcher[T p2p.Sender](peerCount, matchCount uint8, peers []T) *Fetcher[T] {
-  return &Fetcher[T] {
-		PeerCount:  peerCount,
-		MatchCount: matchCount,
-		Peers:      peers,
-		PeerRes:    make(chan *p2p.Msg, 10),
-		HandlerRes: make(chan *p2p.Msg, 10), 
-		HandlerReq: make(chan *p2p.Msg, 10), 
-	}
-}
-
-func (fetcher *Fetcher[T]) FetchBlockHeaders(number uint64) {
-  // Prepare message using Message callback.
-  params := uint64(0)
-  msg := fetcher.Message(params)
-  msg.Handler = fetcher.PeerRes
+// Fetch data from peers. It do it one time and then terminates.
+func (fetcher *Fetcher[T]) Fetch(args ...any) {
+  // Prepare message using Request callback.
+  req := fetcher.Request(args...)
 
   // Send message to peers.
   for _, peer := range fetcher.Peers {
-    peer.Send(msg)
+    peer.Send(req)
   }
-      
-  // Collect messages.
-  msgs, err := fetcher.collectMessages()
+  // Wait for response from all peers and collect messages.
+  msgs, err := fetcher.Collect()
   if err != nil {
     fmt.Println(err)
   }
-
+ 
   // Validate response.
+  // TODO: Handle failures.
   headers, err := fetcher.Validate(msgs)
   if err != nil {
     fmt.Println(err)
   }
 
-  fetcher.HandlerRes <- &p2p.Msg{Payload: headers}
+  // Send response to output channel. In most cases this will be one of the handler.
+  fetcher.Output <- headers
 }
 
 // Collecting responses.
-func (fetcher *Fetcher[T]) collectMessages() ([]*p2p.Msg, error) {
+func (fetcher *Fetcher[T]) Collect() ([]*p2p.Msg, error) {
   msgs := []*p2p.Msg{}
 
   for {
     select {
-    case msg := <-fetcher.PeerRes:
+    case msg := <-fetcher.Input:
       msgs = append(msgs, msg)
-      if len(msgs) == int(fetcher.PeerCount) {
+
+      // Number of received messages must be equal to number of peers.
+      if len(msgs) == len(fetcher.Peers) {
         return msgs, nil
       }
     }
