@@ -20,8 +20,8 @@ import (
 // +------+             +---------+ ---Output---> +---------+
 
 type Fetcher[T any] struct {
-	Input  chan *p2p.Msg // Response from peer, requests from handler.
-  Output chan T        // Response for handler.
+  Input  chan *p2p.Msg // Input channel will primarily receive messages from peers.
+  Output chan T        // Output channel for sending responses to handlers.
 
   Peers []p2p.Sender
 
@@ -30,7 +30,13 @@ type Fetcher[T any] struct {
   Request  func(args ...any) *p2p.Msg
 }
 
-// Fetch data from peers. It do it one time and then terminates.
+// Continuously fetch data from peers. Runs until channel is closed.
+// Interval is specified in seconds.
+func (fetcher *Fetcher[T]) Run(interval int) {
+
+}
+
+// Fetch data from peers. It do it once and then terminates.
 func (fetcher *Fetcher[T]) Fetch(args ...any) {
   // Prepare message using Request callback.
   req := fetcher.Request(args...)
@@ -39,6 +45,7 @@ func (fetcher *Fetcher[T]) Fetch(args ...any) {
   for _, peer := range fetcher.Peers {
     peer.Send(req)
   }
+
   // Wait for response from all peers and collect messages.
   msgs, err := fetcher.Collect()
   if err != nil {
