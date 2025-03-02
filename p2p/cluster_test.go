@@ -2,12 +2,16 @@ package p2p
 
 import (
 	"fmt"
+	"parasite/key"
 	"testing"
 )
 
 func TestCluster(t *testing.T) {
-	cluster := Cluster[*Peer]{}
-	cluster.Load("./bootnodes.txt")
+	prv, _ := key.Private()
 
-	fmt.Println(len(cluster.PeerList))
+	cluster := Cluster{}
+	cluster.Load("./bootnodes.txt")
+	cluster.Connect(2, prv)
+
+	fmt.Println(cluster.Peers)
 }

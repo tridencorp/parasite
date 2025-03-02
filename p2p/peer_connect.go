@@ -84,11 +84,8 @@ func handleHandshakeMessage(conn *rlpx.Conn, pub ecdsa.PublicKey) error {
 		return fmt.Errorf("Handshake | cannot decode bytes from peer")
 	}
 
-	// ID is basically our servers public key.
-	handshake.ID = key.PubToBytes(&pub)
-
-	// This will disable the snappy compression.
-	handshake.Version = 0
+	handshake.ID = key.PubToBytes(&pub) // ID is our local public key.
+	handshake.Version = 0 							// Disable snappy compression.
 
 	buf, err := rlp.EncodeToBytes(handshake)
 	if err != nil {

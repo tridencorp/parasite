@@ -64,7 +64,7 @@ func (dispatcher *MsgDispatcher) Dispatch(peer *Peer, msg *Msg) {
 		dispatcher.Handler <- msg
 		return 
 	}
-
+	
 	// We are parasite.
 	// We are not responding to Get requests. 
 	// If one arrives, we will return an empty response.

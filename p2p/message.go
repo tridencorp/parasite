@@ -12,9 +12,11 @@ type Msg struct {
   Size  uint32
   Data  []byte
   ReqId uint64
-  
+
+	Payload any
+
 	// Each message has a handler to which it can be dispatched.
-  Handler chan Msg
+  Handler chan *Msg
 }
 
 func NewMsg(code int, data []byte) *Msg {

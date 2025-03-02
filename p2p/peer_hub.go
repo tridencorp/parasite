@@ -49,7 +49,7 @@ func (hub *PeerHub) ConnectAll() {
 		go peer.StartReader(hub.dispatcher)
 	}
 
-	log.Debug("Nodes Connected: %d", len(hub.Peers))
+	log.Debug("Connected Peers: %d", len(hub.Peers))
 }
 
 // Start the main PeerHub goroutine which is responsible

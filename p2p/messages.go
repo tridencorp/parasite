@@ -42,15 +42,15 @@ var DiscReasons = []string{
 	"breach of protocol",                  // 0x02
 	"useless peer",                        // 0x03
 	"too many peers",                      // 0x04
-	"already connected",                   // ...
-	"incompatible p2p protocol version",
-	"invalid node identity",
-	"client quitting",
-	"unexpected identity",
-	"connected to self",
-	"read timeout",
-	"subprotocol error",
-	"invalid disconnect reason",
+	"already connected",                   // 0x05
+	"incompatible p2p protocol version",   // 0x06
+	"invalid node identity",               // 0x07
+	"client quitting",                     // 0x08
+	"unexpected identity",                 // 0x09
+	"connected to self",                   // 0x0A
+	"read timeout",                        // 0x0B
+	"subprotocol error",                   // 0x0C
+	"invalid disconnect reason",           // 0x0D
 }
 
 type Request struct {
