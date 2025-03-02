@@ -8,7 +8,7 @@ import (
 type HeaderFetcher struct {
 	Fetcher[[]*p2p.BlockHeader]
 
-	Number uint64 
+	Number uint64
 	Amount uint64
 }
 
@@ -23,6 +23,7 @@ func NewHeaderFetcher() *HeaderFetcher {
 	return fetcher
 }
 
+// Validate response from peers. All headers should have the same Hash.
 func (fetcher *HeaderFetcher) validate(responses []*p2p.Msg) ([]*p2p.BlockHeader, error) {
   expected := []*p2p.BlockHeader{}
 
@@ -51,11 +52,8 @@ func (fetcher *HeaderFetcher) validate(responses []*p2p.Msg) ([]*p2p.BlockHeader
 
 // This request method will be called each iteration, based
 // on given time interval.
-func (fetcher *HeaderFetcher) request(args ...any) *p2p.Msg {
-	number := args[0].(uint64)
-	amount := args[1].(uint64)
-
-	msg, _ := p2p.GetBlockHeaders(number, amount)
+func (fetcher *HeaderFetcher) request() *p2p.Msg {
+	msg, _ := p2p.GetBlockHeaders(fetcher.Number, fetcher.Amount)
 	msg.Handler = fetcher.Input
 
 	return msg

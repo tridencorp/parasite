@@ -3,6 +3,7 @@ package fetchers
 import (
 	"fmt"
 	"parasite/p2p"
+	"time"
 )
 
 // Fetchers are responsible for fetching and validating data from peers.
@@ -27,52 +28,68 @@ type Fetcher[T any] struct {
 
   // Callbacks.
   Validate func(msgs []*p2p.Msg) (T, error)
-  Request  func(args ...any) *p2p.Msg
+  Request  func() *p2p.Msg
 }
 
 // Continuously fetch data from peers. Runs until channel is closed.
-// Interval is specified in seconds.
+// Interval is specified in milliseconds.
 func (fetcher *Fetcher[T]) Run(interval int) {
+  ticker := time.NewTicker(time.Duration(interval) * time.Millisecond)
+	defer ticker.Stop()
 
+  // Send request to peers every given number of milliseconds.
+  for range ticker.C {
+    // Send message to peers.
+    fetcher.Send()
+
+    // Wait for response from peers and collect the messages.
+    msgs, err := fetcher.Collect()
+    if err != nil {
+      fmt.Println(err)
+      return
+    }
+
+    // Validate response.
+    // TODO: Handle failures.
+    headers, err := fetcher.Validate(msgs)
+    if err != nil {
+      fmt.Println(err)
+    }
+
+    // Send response to output channel.
+    // In most cases this will be one of the handlers.
+    fetcher.Output <- headers
+  }
 }
 
-// Fetch data from peers. It do it once and then terminates.
-func (fetcher *Fetcher[T]) Fetch(args ...any) {
-  // Prepare message using Request callback.
-  req := fetcher.Request(args...)
+// Prepare and send message to peers.
+func (fetcher *Fetcher[T]) Send() {
+  // Call Request callback.
+  req := fetcher.Request()
 
   // Send message to peers.
   for _, peer := range fetcher.Peers {
     peer.Send(req)
   }
 
-  // Wait for response from all peers and collect messages.
-  msgs, err := fetcher.Collect()
-  if err != nil {
-    fmt.Println(err)
-  }
- 
-  // Validate response.
-  // TODO: Handle failures.
-  headers, err := fetcher.Validate(msgs)
-  if err != nil {
-    fmt.Println(err)
-  }
-
-  // Send response to output channel. In most cases this will be one of the handler.
-  fetcher.Output <- headers
 }
 
-// Collecting responses.
+// Collect response from peers.
+// TODO: add timeout and terminate if no response will come.
 func (fetcher *Fetcher[T]) Collect() ([]*p2p.Msg, error) {
   msgs := []*p2p.Msg{}
 
   for {
     select {
-    case msg := <-fetcher.Input:
+    case msg, ok := <-fetcher.Input:
       msgs = append(msgs, msg)
 
-      // Number of received messages must be equal to number of peers.
+      // Channel was closed.
+      if !ok {
+        return nil, fmt.Errorf("chanel was closed")
+      }
+
+      // Number of received messages must be equal to the number of peers.
       if len(msgs) == len(fetcher.Peers) {
         return msgs, nil
       }
