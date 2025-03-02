@@ -11,7 +11,8 @@ func TestCluster(t *testing.T) {
 
 	cluster := Cluster{}
 	cluster.Load("./bootnodes.txt")
+
 	cluster.Connect(2, prv)
 
-	fmt.Println(cluster.Peers)
+	fmt.Println(cluster.Get(2))
 }

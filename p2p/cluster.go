@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/exp/rand"
 )
 
 // Cluster will manage peers.
@@ -13,8 +15,24 @@ type Cluster struct {
 	PeerList []string
 }
 
+// Add peers to cluster.
 func (cluster *Cluster) Add(peers []*Peer) {
-	cluster.Peers = peers
+	cluster.Peers = append(cluster.Peers, peers...)
+}
+
+// Get random peers from cluster.
+func (cluster *Cluster) Get(num int) (peers []*Peer) {
+	if len(cluster.Peers) == 0 {return}
+	if num > len(cluster.Peers) {num = len(cluster.Peers)}
+
+	for i := 0; i < num; i++ {
+		rand := rand.Intn(len(cluster.Peers))
+
+		// TODO: check if peers are unique.
+		peers = append(peers, cluster.Peers[rand])
+	}
+
+	return peers
 }
 
 // Load list with known peers.
