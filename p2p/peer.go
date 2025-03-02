@@ -16,7 +16,6 @@ type Sender interface {
 type Peer struct {
 	conn     *rlpx.Conn
 	messages chan *Msg
-
 	Response chan *Msg // Default channel to which we will send response.
 	Failure  chan *Msg // Default channel to which we will send failures.
 
@@ -28,6 +27,10 @@ type Peer struct {
 	// 
 	// We will use requestId for finding req/res match.
 	RequestedMsgs map[uint64]*Msg
+
+	// If someone wants to modify the default Send() behavior, 
+	// this callback can be set.
+	send func(msg *Msg, this *Peer)
 }
 
 // Return new peer.
@@ -69,6 +72,9 @@ func (p *Peer) Read() (*Msg, error) {
 
 // Send msg to peer messages channel.
 func (p *Peer) Send(msg *Msg) {
+	// If possible, call custom send callback.
+	if p.send != nil { p.send(msg, p); return }
+
 	p.RequestedMsgs[msg.ReqId] = msg
 	p.messages <- msg
 }
@@ -90,6 +96,8 @@ func (p *Peer) StartWriter() {
 
 // Start the peer reader, which will read messages 
 // sequentially and send them to dispatcher.
+// 
+// TODO: Add dispatcher support.
 func (p *Peer) StartReader(dispatcher Dispatcher) { 
 	for {
 		msg, err := p.Read()
