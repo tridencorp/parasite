@@ -31,6 +31,17 @@ type Config struct {
 	TraceWriters []io.StringWriter
 }
 
+var Colors =  map[int]string {
+  0: "\033[31m", // Red
+  1: "\033[32m", // Green
+  2: "\033[33m", // Yellow
+  3: "\033[30m", // Black
+  4: "\033[34m", // Blue
+  5: "\033[35m", // Magenta
+  6: "\033[36m", // Cyan
+  7: "\033[37m", // White
+}
+
 // Standard colors.
 const (
 	Red     = "\033[31m"
