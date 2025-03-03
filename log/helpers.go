@@ -12,7 +12,7 @@ import (
 //
 // If last element is not a tuple (single element), display
 // it based on it's type - without any resizing.
-func Format(args ...any) {
+func Format(args ...any) string {
   reset  := "\033[0m"
   format := ""
 
@@ -24,10 +24,15 @@ func Format(args ...any) {
     format += fmt.Sprintf(color + size + reset, data)
   }
 
-  fmt.Println(format)
+  return format
 }
 
 // Return fmt format symbol based on type.
 func ftype() string {
   return "s"
+}
+
+// Formatted error log.
+func Ferror(args ...any) {
+	Error("%s", Format(args...))
 }

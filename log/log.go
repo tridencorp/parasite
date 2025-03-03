@@ -122,19 +122,28 @@ func Start() {
 }
 
 func Error(format string, args ...any) {
-	config.Logs <- logMsg{"ERROR", formatLog(ErrorPrefix, format, args...)}
+  send(logMsg{"ERROR", formatLog(ErrorPrefix, format, args...)})
 }
 
 func Info(format string, args ...any) {
-	config.Logs <- logMsg{"INFO", formatLog(InfoPrefix, format, args...)}
+	send(logMsg{"INFO", formatLog(InfoPrefix, format, args...)})
 }
 
 func Debug(format string, args ...any) {
-	config.Logs <- logMsg{"DEBUG", formatLog(DebugPrefix, format, args...)}
+	send(logMsg{"DEBUG", formatLog(DebugPrefix, format, args...)})
 }
 
 func Trace(format string, args ...any) {
-	config.Logs <- logMsg{"TRACE", formatLog(TracePrefix, format, args...)}
+	send(logMsg{"TRACE", formatLog(TracePrefix, format, args...)})
+}
+
+// Send log to channel - If no receiving goroutine is set, display it on screen.
+func send(log logMsg) {
+  select {
+  case config.Logs <- log:
+  default:
+    fmt.Println(log.data)
+  }
 }
 
 // Format log and add default prefix to it.
@@ -147,7 +156,7 @@ func formatLog(prefix, format string, args ...any) string {
 // 
 // @TODO: should we also add caller function name?
 func defaultPrefix(prefix string) string {
-	_, file, line, _ := runtime.Caller(3)
+	_, file, line, _ := runtime.Caller(4)
 	file = filepath.Base(file)
 
 	// Remove file extension.
