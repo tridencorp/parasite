@@ -3,26 +3,27 @@ package log
 import (
 	"fmt"
 	"reflect"
-	"strconv"
+	"strings"
 )
 
-// Require tuples with size 3:
-//  * column size
-//  * color
+// Require tuples with size 2:
+//  * size:color
 //  * data
 //
-// If last element is not a tuple (single element), display
-// it based on it's type - without any resizing.
+// ex: Format("20:red", data)
 func Format(args ...any) string {
 	reset  := "\033[0m"
 	format := ""
 
-	for i:=0; i < len(args); i+=3 {
-		data  := args[i+2]
+	for i:=0; i < len(args); i+=2 {
+		data  := args[i+1]
 		kind := reflect.TypeOf(data).Kind()
 
-		size  := "%-" + strconv.Itoa(args[i].(int)) + ftype(kind)
-		color := Colors[args[i+1].(int)]
+		// Split size:color argument.
+		subargs := strings.Split(args[i].(string), ":")
+
+		size  := "%-" + subargs[0] + ftype(kind)
+		color := Colors[subargs[1]]
 
 		if kind == reflect.Slice || kind  == reflect.Array || kind == reflect.Struct {
 			symbol := "%" + ftype(kind)
