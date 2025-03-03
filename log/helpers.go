@@ -54,3 +54,18 @@ func ftype(kind reflect.Kind) string {
 func Ferror(args ...any) {
 	Error("%s", Format(args...))
 }
+
+// Formatted info log.
+func Finfo(args ...any) {
+	Info("%s", Format(args...))
+}
+
+// Formatted debug log.
+func Fdebug(args ...any) {
+	Debug("%s", Format(args...))
+}
+
+// Formatted trace log.
+func Ftrace(args ...any) {
+	Trace("%s", Format(args...))
+}
